@@ -1,0 +1,6 @@
+name: UltimateUserInterface
+version: '${version}'
+main: self.starvern.ultimateuserinterface.UltimateUserInterface
+api-version: 1.19
+authors: [ Starvern ]
+description: An advanced GUI management system for ease-of-use.
