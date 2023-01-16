@@ -1,0 +1,20 @@
+title: "Example Menu"
+
+pattern:
+  - '#########'
+  - '#0001000#'
+  - '#########'
+
+'1':
+  name: '{#f00}Ban Player'
+  material: BARRIER
+  enchanted: true
+  lore:
+    - '&7Remove a player from'
+    - '&7the server {#f00}permanently'
+
+'#':
+  name: ' '
+  material: BLACK_STAINED_GLASS_PANE
+  enchanted: false
+  lore: []
