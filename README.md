@@ -35,6 +35,19 @@ By default, all of the GUI's will prevent the user from adding / removing items.
 # For developers
 UUI handles all GUIs by itself, meaning you can focus on creating logic without the clutter of GUI-management.
 
+For `build.gradle`
+```
+repositores {
+  maven {
+    url = 'https://jitpack.io'
+  }
+}
+
+dependencies {
+  compileOnly 'com.github.IIStarZ4:UltimateUserInterface:pre-release'
+}
+```
+
 The API provides an interface for getting and altering items, for example:
 
 ```
@@ -44,7 +57,6 @@ GuiManager.getGui("example_menu").getItem("#").getItem().setMaterial(Material.AI
 This code snippet will change all of the '#' item to air.
 
 # Advanced
-
 If you are looking for a more complicated interface which may change on the fly, take a look at the following code snippet:
 
 ```
