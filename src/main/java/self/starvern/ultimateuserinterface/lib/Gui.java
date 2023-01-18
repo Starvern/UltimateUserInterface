@@ -32,6 +32,7 @@ public class Gui
 
     /**
      * Builds List<GuiPage> from the configuration.
+     * @since 0.1.0
      */
     private void loadPages()
     {
@@ -45,6 +46,7 @@ public class Gui
 
     /**
      * @return The file this crate is found.
+     * @since 0.1.0
      */
     public File getFile()
     {
@@ -53,6 +55,7 @@ public class Gui
 
     /**
      * @return The config of the GUI file.
+     * @since 0.1.0
      */
     public FileConfiguration getConfig()
     {
@@ -61,6 +64,7 @@ public class Gui
 
     /**
      * @return The name of the GUI as defined in the filename
+     * @since 0.1.0
      */
     public String getId() {
         return id;
@@ -68,6 +72,7 @@ public class Gui
 
     /**
      * @return The title of the GUI
+     * @since 0.1.0
      */
     public String getTitle()
     {
@@ -76,6 +81,7 @@ public class Gui
 
     /**
      * @return The title of the GUI
+     * @since 0.1.0
      */
     public List<String> getPatterns()
     {
@@ -86,12 +92,17 @@ public class Gui
      * Gets a specific page from the GUI.
      * @param page The index of the page to get.
      * @return The GuiPage
+     * @since 0.1.0
      */
     public GuiPage getPage(int page)
     {
         return (page >= pages.size()) ? pages.get(0) : pages.get(page);
     }
 
+    /**
+     * @return A list of all of the pages this GUI has.
+     * @since 0.1.0
+     */
     public List<GuiPage> getPages()
     {
         return pages;

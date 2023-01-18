@@ -7,6 +7,7 @@ import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +16,10 @@ public class GuiManager
 {
     private static final Set<Gui> guis = new HashSet<>();
 
+    /**
+     * Convert all the files in /gui/ to GUIs.
+     * @since 0.1.0
+     */
     public static void loadGuis()
     {
         File folder = new File(UUI.getSingleton().getDataFolder(), "gui");
@@ -31,6 +36,12 @@ public class GuiManager
         }
     }
 
+    /**
+     * @param id The filename of the GUI file.
+     * @return The GUI, or null.
+     * @since 0.1.0
+     */
+    @Nullable
     public static Gui getGui(String id)
     {
         for (Gui gui : guis)
@@ -41,6 +52,12 @@ public class GuiManager
         return null;
     }
 
+    /**
+     * @param inventory The inventory to check
+     * @return The GuiPage this inventory is owned by, or null
+     * @since 0.1.0
+     */
+    @Nullable
     public static GuiPage getGuiPage(Inventory inventory)
     {
         if (inventory == null) return null;

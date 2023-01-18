@@ -14,6 +14,7 @@ public class ChatManager
      * Formats color to each string in the list
      * @param list The list to colorize
      * @return The colorized list
+     * @since 0.1.0
      */
     public static List<String> colorize(List<String> list)
     {
@@ -31,6 +32,7 @@ public class ChatManager
      * Formats color to the string
      * @param string the string to colorize
      * @return the colorized string
+     * @since 0.1.0
      */
     public static String colorize(String string)
     {
@@ -43,6 +45,7 @@ public class ChatManager
      * Checks the regex of standard hex colors {#fff}
      * @param string the string buffer to check
      * @return the string with single colors parsed
+     * @since 0.1.0
      */
     private static StringBuffer parseSingle(StringBuffer string)
     {
@@ -71,6 +74,7 @@ public class ChatManager
      * Checks the regex of triple hex colors {#fff>} {#fff<>} {#fff<}
      * @param string the string buffer to check
      * @return the string with triple colors parsed
+     * @since 0.1.0
      */
     private static StringBuffer parseTriple(StringBuffer string)
     {
@@ -138,6 +142,7 @@ public class ChatManager
      * Checks the regex of double hex colors {#fff>} {#fff<}
      * @param string the string buffer to check
      * @return the string with double colors parsed
+     * @since 0.1.0
      */
     private static StringBuffer parseDouble(StringBuffer string)
     {

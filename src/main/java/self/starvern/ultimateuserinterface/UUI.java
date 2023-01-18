@@ -32,25 +32,6 @@ public final class UUI extends JavaPlugin
 
         new InterfaceCommand();
         new GuiListener();
-
-        GuiPage page = GuiManager.getGui("example_menu").getPage(0);
-        page.splitInstances("#");
-
-        List<GuiItem> instances = page.getAllInstances("#");
-
-        int i = 0;
-        for (GuiItem item : instances)
-        {
-            i++;
-            item.getItem().addDisplayName("&aExample, " + i);
-            item.executes(event -> {
-                event.getWhoClicked().sendMessage("&7Clicked on item ");
-            });
-        }
-
-        instances.get(2).executes(event -> {
-            event.getWhoClicked().openInventory(page.getGui().getPage(1).getInventory());
-        }).getItem().setMaterial(Material.ARROW).addDisplayName("&aNext Page");
     }
 
     @Override

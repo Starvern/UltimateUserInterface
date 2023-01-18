@@ -11,6 +11,7 @@ public class FileManager
      * Pulls the configuration from the file.
      * @param file The file to pull from
      * @return The configuration
+     * @since 0.1.0
      */
     public static FileConfiguration getConfig(File file)
     {

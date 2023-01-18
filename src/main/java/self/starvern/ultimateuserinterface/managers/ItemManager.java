@@ -10,10 +10,11 @@ import java.util.List;
 public class ItemManager
 {
     /**
-     * Builds an item based on a configuration section
-     * @param config the config to use
-     * @param path the section to reference
-     * @return the built item
+     * Builds an item based on a configuration section.
+     * @param config The config to use.
+     * @param path The section to reference.
+     * @return The built item.
+     * @since 0.1.0
      */
     public static ItemUtility buildItem(FileConfiguration config, String path)
     {
@@ -32,12 +33,6 @@ public class ItemManager
         {
             material = Material.STONE;
         }
-
-        /*
-        ItemStack item = new ItemStack(material);
-        ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null) return item;
-         */
 
         return new ItemUtility(material)
                 .addDisplayName(name)

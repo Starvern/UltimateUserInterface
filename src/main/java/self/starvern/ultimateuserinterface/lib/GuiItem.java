@@ -29,6 +29,10 @@ public class GuiItem
         this.key = new NamespacedKey(UUI.getSingleton(), "uui-item-id");
     }
 
+    /**
+     * @return The UUID of the item.
+     * @since 0.1.0
+     */
     public UUID getUniqueId()
     {
         return uuid;
@@ -36,6 +40,7 @@ public class GuiItem
 
     /**
      * @return The GUI this item appears in.
+     * @since 0.1.0
      */
     public Gui getGui()
     {
@@ -45,6 +50,7 @@ public class GuiItem
     /**
      * Creates a duplicate from the GUI file
      * @return An un-altered instance of the item
+     * @since 0.1.0
      */
     public GuiItem duplicate()
     {
@@ -53,6 +59,7 @@ public class GuiItem
 
     /**
      * @return The character associated with the item.
+     * @since 0.1.0
      */
     public String getId()
     {
@@ -65,22 +72,18 @@ public class GuiItem
      *     appears. Use this method as an entry-point for item customization.
      * </p>
      * @return The item's ItemUtility
+     * @since 0.1.0
      */
     public ItemUtility getItem()
     {
-        this.addKey();
-        return this.item;
-    }
-
-    private void addKey()
-    {
-        this.item.addKey(this.key, this.uuid.toString());
+        return this.item.addKey(this.key, this.uuid.toString());
     }
 
     /**
      * Attaches an event to the item
      * @param event The event to run
      * @return The instance of the item
+     * @since 0.1.0
      */
     public GuiItem executes(Consumer<InventoryClickEvent> event)
     {
@@ -91,6 +94,7 @@ public class GuiItem
     /**
      * Executes the event
      * @param event The event to run
+     * @since 0.1.0
      */
     public void runEvent(@NotNull InventoryClickEvent event)
     {

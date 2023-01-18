@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import self.starvern.ultimateuserinterface.UUI;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,11 +34,19 @@ public class GuiPage
         this.loadItems();
     }
 
+    /**
+     * @return The GUI this page is inside.
+     * @since 0.1.0
+     */
     public Gui getGui()
     {
         return this.gui;
     }
 
+    /**
+     * Constructs a list of GuiItems based on the pattern
+     * @since 0.1.0
+     */
     public void loadItems()
     {
         for (String letter : this.gui.getConfig().getConfigurationSection("").getKeys(false))
@@ -48,6 +57,10 @@ public class GuiPage
         }
     }
 
+    /**
+     * @return The inventory constructed from the pattern.
+     * @since 0.1.0
+     */
     public Inventory getInventory()
     {
         int slot = -1;
@@ -81,8 +94,9 @@ public class GuiPage
     }
 
     /**
-     * Adds a list of generated items to the GUI's item list
-     * @param id The character the item is assigned to
+     * Adds a list of generated items to the GUI's item list.
+     * @param id The character the item is assigned to.
+     * @since 0.1.0
      */
     public void splitInstances(@NotNull String id)
     {
@@ -98,6 +112,11 @@ public class GuiPage
         this.isSplit = true;
     }
 
+    /**
+     * @param id The character associated with the item.
+     * @return The list of items.
+     * @since 0.1.0
+     */
     @NotNull
     public List<GuiItem> getAllInstances(@NotNull String id)
     {
@@ -106,6 +125,12 @@ public class GuiPage
                 .collect(Collectors.toList());
     }
 
+    /**
+     * @param item The item to compare to the GuiItem.
+     * @return The GuiItem, or if the item doesn't match anything, null.
+     * @since 0.1.0
+     */
+    @Nullable
     public GuiItem getItem(ItemStack item)
     {
         ItemMeta itemMeta = item.getItemMeta();
@@ -127,6 +152,12 @@ public class GuiPage
         return null;
     }
 
+    /**
+     * @param id The character associated with the item.
+     * @return The GuiItem associated with the id, or null.
+     * @since 0.1.0
+     */
+    @Nullable
     public GuiItem getItem(String id)
     {
         for (GuiItem item : items)

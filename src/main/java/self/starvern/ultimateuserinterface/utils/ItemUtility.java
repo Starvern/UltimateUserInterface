@@ -31,6 +31,11 @@ public class ItemUtility
         return build(1);
     }
 
+    /**
+     * @param amount The amount of the ItemStack.
+     * @return The built item.
+     * @since 0.1.0
+     */
     public ItemStack build(int amount)
     {
         ItemStack item = new ItemStack(this.material, amount);
@@ -52,29 +57,54 @@ public class ItemUtility
         return item;
     }
 
+    /**
+     * @param name The new name of the item.
+     * @return The instance of ItemUtility.
+     * @since 0.1.0
+     */
     public ItemUtility addDisplayName(String name)
     {
         this.displayName = name;
         return this;
     }
 
+    /**
+     * @param lore The new lore of the item.
+     * @return The instance of ItemUtility.
+     * @since 0.1.0
+     */
     public ItemUtility addLore(List<String> lore)
     {
         this.lore = lore;
         return this;
     }
 
+    /**
+     * Makes the item glow with a basic enchantment.
+     * @return The instance of ItemUtility.
+     * @since 0.1.0
+     */
     public ItemUtility makeEnchanted()
     {
         this.enchanted = true;
         return this;
     }
 
+    /**
+     * @return The material of the item.
+     * @since 0.1.0
+     */
     public Material getMaterial()
     {
         return material;
     }
 
+    /**
+     * Makes the item enchanted based on the value.
+     * @param value Whether to make it enchanted.
+     * @return The instance of ItemUtiltiy.
+     * @since 0.1.0
+     */
     public ItemUtility makeEnchanted(boolean value)
     {
         this.enchanted = value;
@@ -86,6 +116,7 @@ public class ItemUtility
      * @param key The key to use
      * @param value The value of the data
      * @return The instance of ItemUtility
+     * @since 0.1.0
      */
     public ItemUtility addKey(NamespacedKey key, String value)
     {
@@ -94,6 +125,12 @@ public class ItemUtility
         return this;
     }
 
+    /**
+     * Set the item's material.
+     * @param material The material of the item.
+     * @return The instance of ItemUtility.
+     * @since 0.1.0
+     */
     public ItemUtility setMaterial(Material material)
     {
         this.material = material;
