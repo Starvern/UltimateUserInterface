@@ -1,14 +1,19 @@
 package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.managers.FileManager;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Gui
 {
@@ -88,18 +93,23 @@ public class Gui
     public Inventory getInventory()
     {
         int slot = -1;
+        Map<String, Integer> itemCount = new HashMap<>();
 
         for (String line : pattern)
         {
-            for (char letter : line.toCharArray())
+            for (char character : line.toCharArray())
             {
-                String character = String.valueOf(letter);
+                String letter = String.valueOf(character);
                 slot++;
 
-                GuiItem item = getItem(character);
-                if (item == null) continue;
+                List<GuiItem> items = getAllInstances(letter);
+                if (items.isEmpty()) continue;
 
-                this.inventory.setItem(slot, item.getItem());
+                int index = itemCount.getOrDefault(letter, 0);
+                if (index >= items.size()) continue;
+                if (items.get(index).getItem().getMaterial().equals(Material.AIR)) continue;
+                this.inventory.setItem(slot, items.get(index).getItem().build());
+                itemCount.put(letter, ++index);
             }
         }
 
@@ -115,4 +125,30 @@ public class Gui
         }
         return null;
     }
+
+    /**
+     * Adds a list of generated items to the GUI's item list
+     * @param id The character the item is assigned to
+     */
+    public void createInstances(@NotNull String id)
+    {
+        for (String line : pattern)
+        {
+            for (char character : line.toCharArray())
+            {
+                String letter = String.valueOf(character);
+                if (!letter.equalsIgnoreCase(id)) continue;
+                this.items.add(getItem(letter).duplicate());
+            }
+        }
+    }
+
+    @NotNull
+    public List<GuiItem> getAllInstances(@NotNull String id)
+    {
+        return this.items.stream()
+                .filter(item -> item.getId().equalsIgnoreCase(id))
+                .collect(Collectors.toList());
+    }
 }
+

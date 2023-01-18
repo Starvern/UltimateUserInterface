@@ -42,6 +42,7 @@ public class GuiManager
 
     public static Gui getGui(Inventory inventory)
     {
+        if (inventory == null) return null;
         for (Gui gui : guis)
         {
             if (gui.getInventory().equals(inventory)) return gui;

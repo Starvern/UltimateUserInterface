@@ -1,10 +1,12 @@
 package self.starvern.ultimateuserinterface;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.plugin.java.JavaPlugin;
 import self.starvern.ultimateuserinterface.events.GuiListener;
 import self.starvern.ultimateuserinterface.lib.Gui;
+import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.io.File;
@@ -27,22 +29,6 @@ public final class UUI extends JavaPlugin
         GuiManager.loadGuis();
 
         new InterfaceCommand();
-
-        GuiManager.getGui("example_menu").getItem("1").executes(event -> {
-            event.getWhoClicked().sendMessage("banned");
-            event.setCancelled(true);
-        });
-
-        GuiManager.getGui("example_menu").getItem("#").executes(event -> {
-            event.getWhoClicked().getWorld().playSound(event.getWhoClicked(), Sound.ENTITY_ENDER_EYE_DEATH, 1, 1);
-            event.setCancelled(true);
-        });
-
-        GuiManager.getGui("super").getItem("1").executes(event -> {
-            event.getWhoClicked().sendMessage("HELLO");
-            event.setCancelled(true);
-        });
-
         new GuiListener();
     }
 

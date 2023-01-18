@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.managers.ItemManager;
+import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -18,7 +19,7 @@ public class GuiItem
 {
     private final Gui gui;
     private final String id;
-    private final ItemStack item;
+    private final ItemUtility item;
     private final NamespacedKey key;
     private final UUID uuid = UUID.randomUUID();
 
@@ -41,6 +42,15 @@ public class GuiItem
     }
 
     /**
+     * Creates a duplicate from the GUI file
+     * @return An un-altered instance of the item
+     */
+    public GuiItem duplicate()
+    {
+        return new GuiItem(this.gui, this.id);
+    }
+
+    /**
      * @return The character associated with the item.
      */
     public String getId()
@@ -48,7 +58,14 @@ public class GuiItem
         return this.id;
     }
 
-    public ItemStack getItem()
+    /**
+     * <p>
+     *     Returns an instance of ItemUtility, which manages how the item
+     *     appears. Use this method as an entry-point for item customization.
+     * </p>
+     * @return The item's ItemUtility
+     */
+    public ItemUtility getItem()
     {
         this.addKey();
         return this.item;
@@ -56,10 +73,7 @@ public class GuiItem
 
     private void addKey()
     {
-        ItemMeta itemMeta = this.item.getItemMeta();
-        if (itemMeta == null) return;
-        itemMeta.getPersistentDataContainer().set(this.key, PersistentDataType.STRING, this.uuid.toString());
-        this.item.setItemMeta(itemMeta);
+        this.item.addKey(this.key, this.uuid.toString());
     }
 
     /**
@@ -69,7 +83,6 @@ public class GuiItem
      */
     public GuiItem executes(Consumer<InventoryClickEvent> event)
     {
-        Bukkit.getLogger().info("Attached Event");
         this.event = event;
         return this;
     }

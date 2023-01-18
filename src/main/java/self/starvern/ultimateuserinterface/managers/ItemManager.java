@@ -15,7 +15,7 @@ public class ItemManager
      * @param path the section to reference
      * @return the built item
      */
-    public static ItemStack buildItem(FileConfiguration config, String path)
+    public static ItemUtility buildItem(FileConfiguration config, String path)
     {
         String name = config.getString(path + ".name", "UNKNOWN");
         String materialName = config.getString(path + ".material", "STONE");
@@ -42,7 +42,6 @@ public class ItemManager
         return new ItemUtility(material)
                 .addDisplayName(name)
                 .addLore(lore)
-                .makeEnchanted(enchanted)
-                .build();
+                .makeEnchanted(enchanted);
     }
 }
