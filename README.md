@@ -32,6 +32,33 @@ The pattern represents how the GUI will look in-game. Each row in the pattern co
 By default, all of the GUI's will prevent the user from adding / removing items.
 
 # For developers
+UUI handles all GUIs by itself, meaning you can focus on creating logic without the clutter of GUI-management.
 
-Visit the wiki
+The API provides an interface for getting and altering items, for example:
+
+```
+GuiManager.getGui("example_menu").getItem("#").getItem().setMaterial(Material.AIR);
+```
+
+This code snippet will change all of the '#' item to air.
+
+# Advanced
+
+If you are looking for a more complicated interface which may change on the fly, take a look at the following code snippet:
+
+```
+Gui gui = GuiManager.getGui("example_menu");
+gui.createInstances("#");
+
+int i = 0;
+for (GuiItem item : gui.getAllInstances("#"))
+{
+
+  i++;
+  item.getItem().setDisplayName(String.valueOf(i)).setMaterial((i > 10) ? Material.AIR : Material.BEACON);
+}
+```
+
+The `Gui#createInstance` method will split all of the characters found in the pattern into their own items, rather than being uniform.
+You can then loop over all of the item instances and alter them as you please.
 
