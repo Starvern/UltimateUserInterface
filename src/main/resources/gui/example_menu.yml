@@ -1,9 +1,18 @@
 title: "Example Menu"
 
-pattern:
+pattern1:
   - '#########'
   - '#0001000#'
   - '#########'
+
+pattern2:
+  - '#########'
+  - '#0001000#'
+  - '#########'
+
+patterns:
+  - 'pattern1'
+  - 'pattern2'
 
 '1':
   name: '{#f00}Ban Player'
@@ -12,6 +21,14 @@ pattern:
   lore:
     - '&7Remove a player from'
     - '&7the server {#f00}permanently'
+
+'2':
+  name: '{#f00}Mute Player'
+  material: BARRIER
+  enchanted: true
+  lore:
+    - '&7Stop a player from talking'
+    - '&7on the server {#f00}permanently'
 
 '#':
   name: ' '

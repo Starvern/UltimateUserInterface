@@ -1,11 +1,7 @@
 package self.starvern.ultimateuserinterface.lib;
 
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import self.starvern.ultimateuserinterface.UUI;
@@ -31,6 +27,11 @@ public class GuiItem
         this.id = id;
         this.item = ItemManager.buildItem(gui.getConfig(), this.id);
         this.key = new NamespacedKey(UUI.getSingleton(), "uui-item-id");
+    }
+
+    public UUID getUniqueId()
+    {
+        return uuid;
     }
 
     /**

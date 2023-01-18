@@ -1,19 +1,12 @@
 package self.starvern.ultimateuserinterface.lib;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
+
 import self.starvern.ultimateuserinterface.managers.FileManager;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Gui
 {
@@ -22,9 +15,8 @@ public class Gui
 
     private final String id;
     private final String title;
-    private final List<String> pattern;
-    private final List<GuiItem> items;
-    private final Inventory inventory;
+    private final List<String> patterns;
+    private final List<GuiPage> pages;
 
     public Gui(File file)
     {
@@ -32,123 +24,77 @@ public class Gui
         this.config = FileManager.getConfig(file);
         this.id = file.getName().replace(".yml", "");
         this.title = this.config.getString("title", "Gui");
-        this.pattern = this.config.getStringList("pattern");
-        this.items = new ArrayList<>();
-        this.inventory = Bukkit.createInventory(null, 9 * this.pattern.size(), this.title);
+        this.patterns = this.config.getStringList("patterns");
+        this.pages = new ArrayList<>();
 
-        Bukkit.getLogger().info(this.id);
-
-        this.loadItems();
+        loadPages();
     }
 
+    /**
+     * Builds List<GuiPage> from the configuration.
+     */
+    private void loadPages()
+    {
+        this.pages.clear();
+        for (String patternName : patterns)
+        {
+            List<String> pattern = this.config.getStringList(patternName);
+            this.pages.add(new GuiPage(this, pattern));
+        }
+    }
+
+    /**
+     * @return The file this crate is found.
+     */
     public File getFile()
     {
         return file;
     }
 
+    /**
+     * @return The config of the GUI file.
+     */
     public FileConfiguration getConfig()
     {
         return config;
     }
 
+    /**
+     * @return The name of the GUI as defined in the filename
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @return The title of the GUI
+     */
     public String getTitle()
     {
         return title;
     }
 
-    public List<String> getPattern()
+    /**
+     * @return The title of the GUI
+     */
+    public List<String> getPatterns()
     {
-        return pattern;
-    }
-
-    public List<GuiItem> getItems()
-    {
-        return items;
-    }
-
-    public void loadItems()
-    {
-        for (String letter : this.config.getConfigurationSection("").getKeys(false))
-        {
-            if (letter.length() != 1) continue;
-
-            items.add(new GuiItem(this, letter));
-        }
-    }
-
-    public GuiItem getItem(String id)
-    {
-        for (GuiItem item : items)
-        {
-            if (item.getId().equalsIgnoreCase(id))
-                return item;
-        }
-        return null;
-    }
-
-    public Inventory getInventory()
-    {
-        int slot = -1;
-        Map<String, Integer> itemCount = new HashMap<>();
-
-        for (String line : pattern)
-        {
-            for (char character : line.toCharArray())
-            {
-                String letter = String.valueOf(character);
-                slot++;
-
-                List<GuiItem> items = getAllInstances(letter);
-                if (items.isEmpty()) continue;
-
-                int index = itemCount.getOrDefault(letter, 0);
-                if (index >= items.size()) continue;
-                if (items.get(index).getItem().getMaterial().equals(Material.AIR)) continue;
-                this.inventory.setItem(slot, items.get(index).getItem().build());
-                itemCount.put(letter, ++index);
-            }
-        }
-
-        return this.inventory;
-    }
-
-    public GuiItem getItem(ItemStack item)
-    {
-        for (GuiItem guiItem : items)
-        {
-            if (guiItem.getItem().equals(item))
-                return guiItem;
-        }
-        return null;
+        return patterns;
     }
 
     /**
-     * Adds a list of generated items to the GUI's item list
-     * @param id The character the item is assigned to
+     * Gets a specific page from the GUI.
+     * @param page The index of the page to get.
+     * @return The GuiPage
      */
-    public void createInstances(@NotNull String id)
+    public GuiPage getPage(int page)
     {
-        for (String line : pattern)
-        {
-            for (char character : line.toCharArray())
-            {
-                String letter = String.valueOf(character);
-                if (!letter.equalsIgnoreCase(id)) continue;
-                this.items.add(getItem(letter).duplicate());
-            }
-        }
+        return (page >= pages.size()) ? pages.get(0) : pages.get(page);
     }
 
-    @NotNull
-    public List<GuiItem> getAllInstances(@NotNull String id)
+    public List<GuiPage> getPages()
     {
-        return this.items.stream()
-                .filter(item -> item.getId().equalsIgnoreCase(id))
-                .collect(Collectors.toList());
+        return pages;
     }
 }
 

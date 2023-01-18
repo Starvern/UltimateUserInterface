@@ -5,6 +5,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.lib.Gui;
+import self.starvern.ultimateuserinterface.lib.GuiPage;
 
 import java.io.File;
 import java.util.HashSet;
@@ -40,12 +41,13 @@ public class GuiManager
         return null;
     }
 
-    public static Gui getGui(Inventory inventory)
+    public static GuiPage getGuiPage(Inventory inventory)
     {
         if (inventory == null) return null;
         for (Gui gui : guis)
         {
-            if (gui.getInventory().equals(inventory)) return gui;
+            for (GuiPage page : gui.getPages())
+                if (page.getInventory().equals(inventory)) return page;
         }
         return null;
     }

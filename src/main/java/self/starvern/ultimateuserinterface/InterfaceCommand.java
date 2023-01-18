@@ -45,7 +45,7 @@ public class InterfaceCommand implements CommandExecutor
             return false;
         }
 
-        player.openInventory(gui.getInventory());
+        player.openInventory(gui.getPage(0).getInventory());
 
         return true;
     }

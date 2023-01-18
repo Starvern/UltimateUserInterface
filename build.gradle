@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'self.starvern'
-version = '1.0.0'
+version = '0.1.0'
 
 repositories {
     mavenCentral()
@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:20.1.0'
+    implementation 'org.jetbrains:annotations:23.1.0'
     compileOnly 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
 }
 
