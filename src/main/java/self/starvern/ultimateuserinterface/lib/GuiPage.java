@@ -22,7 +22,7 @@ public class GuiPage
     private final List<String> pattern;
     private final List<GuiItem> items;
     private final Inventory inventory;
-    private boolean isSplit;
+    private final Map<String, Boolean> splitItems;
 
     public GuiPage(Gui gui, List<String> pattern)
     {
@@ -30,6 +30,7 @@ public class GuiPage
         this.pattern = pattern;
         this.items = new ArrayList<>();
         this.inventory = Bukkit.createInventory(null, 9 * this.pattern.size(), this.gui.getTitle());
+        this.splitItems = new HashMap<>();
 
         this.loadItems();
     }
@@ -76,7 +77,7 @@ public class GuiPage
                 GuiItem item = getItem(letter);
                 if (item == null) continue;
 
-                if (this.isSplit)
+                if (this.splitItems.containsKey(letter) && this.splitItems.get(letter))
                 {
                     List<GuiItem> instances = getAllInstances(letter);
                     if (instances.isEmpty()) continue;
@@ -109,7 +110,7 @@ public class GuiPage
                 this.items.add(getItem(letter).duplicate());
             }
         }
-        this.isSplit = true;
+        splitItems.put(id, true);
     }
 
     /**
