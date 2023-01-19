@@ -35,7 +35,7 @@ public class GuiItem
      */
     public UUID getUniqueId()
     {
-        return uuid;
+        return this.uuid;
     }
 
     /**

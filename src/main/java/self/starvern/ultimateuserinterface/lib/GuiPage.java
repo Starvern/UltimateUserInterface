@@ -144,7 +144,7 @@ public class GuiPage
         String rawUUID = container.get(new NamespacedKey(UUI.getSingleton(), "uui-item-id"), PersistentDataType.STRING);
         UUID uuid = UUID.fromString(rawUUID);
 
-        for (GuiItem guiItem : items)
+        for (GuiItem guiItem : this.items)
         {
             if (guiItem.getUniqueId().equals(uuid))
                 return guiItem;
@@ -160,7 +160,7 @@ public class GuiPage
     @Nullable
     public GuiItem getItem(String id)
     {
-        for (GuiItem item : items)
+        for (GuiItem item : this.items)
         {
             if (item.getId().equalsIgnoreCase(id))
                 return item;

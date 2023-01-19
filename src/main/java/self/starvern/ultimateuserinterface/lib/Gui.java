@@ -50,7 +50,7 @@ public class Gui
      */
     public File getFile()
     {
-        return file;
+        return this.file;
     }
 
     /**
@@ -59,7 +59,7 @@ public class Gui
      */
     public FileConfiguration getConfig()
     {
-        return config;
+        return this.config;
     }
 
     /**
@@ -67,7 +67,7 @@ public class Gui
      * @since 0.1.0
      */
     public String getId() {
-        return id;
+        return this.id;
     }
 
     /**
@@ -76,7 +76,7 @@ public class Gui
      */
     public String getTitle()
     {
-        return title;
+        return this.title;
     }
 
     /**
@@ -85,7 +85,7 @@ public class Gui
      */
     public List<String> getPatterns()
     {
-        return patterns;
+        return this.patterns;
     }
 
     /**
@@ -96,7 +96,7 @@ public class Gui
      */
     public GuiPage getPage(int page)
     {
-        return (page >= pages.size()) ? pages.get(0) : pages.get(page);
+        return (page >= this.pages.size()) ? this.pages.get(0) : this.pages.get(page);
     }
 
     /**
@@ -105,7 +105,17 @@ public class Gui
      */
     public List<GuiPage> getPages()
     {
-        return pages;
+        return this.pages;
+    }
+
+    /**
+     * @param page The page to get the index of.
+     * @return The index of the page inside the GUI pages list.
+     * @since 0.1.2
+     */
+    public int getPageIndex(GuiPage page)
+    {
+        return this.pages.indexOf(page);
     }
 }
 
