@@ -69,6 +69,58 @@ public class ItemUtility
     }
 
     /**
+     * Copies the values from the parameter to the instance.
+     * @param item The item to copy from.
+     * @return The instance of the item, which the values have been copied to.
+     * @since 0.1.3
+     */
+    public ItemUtility copy(ItemUtility item)
+    {
+        this.setMaterial(item.getMaterial())
+                .addDisplayName(item.getDisplayName())
+                .addLore(item.getLore())
+                .addKey(item.getKey(), item.getKeyValue());
+
+        return this;
+    }
+
+    /**
+     * @return The item's display name.
+     * @since 0.1.3
+     */
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    /**
+     * @return The item's lore.
+     * @since 0.1.3
+     */
+    public List<String> getLore()
+    {
+        return lore;
+    }
+
+    /**
+     * @return The item's NamespacedKey
+     * @since 0.1.3
+     */
+    public NamespacedKey getKey()
+    {
+        return key;
+    }
+
+    /**
+     * @return Returns the data stored in the item's PDC
+     * @since 0.1.3
+     */
+    public String getKeyValue()
+    {
+        return this.value;
+    }
+
+    /**
      * @param lore The new lore of the item.
      * @return The instance of ItemUtility.
      * @since 0.1.0
