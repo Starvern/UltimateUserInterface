@@ -22,13 +22,7 @@ public final class UUI extends JavaPlugin
     {
         singleton = this;
 
-        File folder = new File(UUI.getSingleton().getDataFolder(), "gui");
-        boolean created = folder.mkdirs();
-        if (created) Bukkit.getLogger().info("Created gui folder");
-
-        saveResource("gui/example_menu.yml", false);
-
-        GuiManager.loadGuis();
+        load();
 
         new InterfaceCommand();
         new GuiListener();
@@ -43,5 +37,16 @@ public final class UUI extends JavaPlugin
     public static UUI getSingleton()
     {
         return singleton;
+    }
+
+    public void load()
+    {
+        File folder = new File(UUI.getSingleton().getDataFolder(), "gui");
+        boolean created = folder.mkdirs();
+        if (created) Bukkit.getLogger().info("Created gui folder");
+
+        saveResource("gui/example_menu.yml", false);
+
+        GuiManager.loadGuis();
     }
 }

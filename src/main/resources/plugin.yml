@@ -7,4 +7,14 @@ description: An advanced GUI management system for ease-of-use.
 commands:
   interface:
     description: Open a gui
+    permission: uui.command.interface
     aliases: [if]
+    permission-message: "Insufficient permissions."
+    usage: interface <gui_name>
+permissions:
+  uui.command.interface:
+    description: Allows the user to use /interface
+    default: false
+  uui.command.interface.reload:
+    description: Allows the user to use /interface reload
+    default: false

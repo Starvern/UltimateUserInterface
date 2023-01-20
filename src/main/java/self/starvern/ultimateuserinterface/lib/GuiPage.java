@@ -45,6 +45,16 @@ public class GuiPage
     }
 
     /**
+     * Creates a clean duplicate of the page.
+     * @return The new instance of GuiPage.
+     * @since 0.1.5
+     */
+    public GuiPage duplicate()
+    {
+        return new GuiPage(this.gui, this.pattern);
+    }
+
+    /**
      * Constructs a list of GuiItems based on the pattern
      * @since 0.1.0
      */

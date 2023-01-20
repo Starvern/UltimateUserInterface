@@ -45,6 +45,16 @@ public class Gui
     }
 
     /**
+     * Duplicates a page at the given index, and adds it to the end of the page list.
+     * @param index The page number.
+     * @since 0.1.5
+     */
+    public void appendPage(int index)
+    {
+        this.pages.add(this.pages.get((index >= this.pages.size()) ? 0 : index).duplicate());
+    }
+
+    /**
      * @return The file this crate is found.
      * @since 0.1.0
      */
