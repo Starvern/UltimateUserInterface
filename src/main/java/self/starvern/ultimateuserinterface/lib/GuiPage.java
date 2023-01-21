@@ -117,7 +117,9 @@ public class GuiPage
             {
                 String letter = String.valueOf(character);
                 if (!letter.equalsIgnoreCase(id)) continue;
-                this.items.add(getItem(letter).duplicate());
+                GuiItem item = getItem(letter);
+                if (item == null) continue;
+                this.items.add(item.duplicate());
             }
         }
         splitItems.put(id, true);
@@ -134,6 +136,15 @@ public class GuiPage
         return this.items.stream()
                 .filter(item -> item.getId().equalsIgnoreCase(id))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * @return A list of all items in this page.
+     * @since 0.1.6
+     */
+    public List<GuiItem> getItems()
+    {
+        return this.items;
     }
 
     /**
