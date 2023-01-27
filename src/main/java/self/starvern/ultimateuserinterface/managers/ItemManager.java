@@ -19,7 +19,7 @@ public class ItemManager
     public static ItemUtility buildItem(FileConfiguration config, String path)
     {
         String name = config.getString(path + ".name", "UNKNOWN");
-        String materialName = config.getString(path + ".material", "STONE");
+        String materialName = config.getString(path + ".material", "AIR");
         boolean enchanted = config.getBoolean(path + ".enchanted", false);
         List<String> lore = config.getStringList(path + ".lore");
 

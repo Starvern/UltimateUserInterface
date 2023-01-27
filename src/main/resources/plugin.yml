@@ -14,7 +14,7 @@ commands:
 permissions:
   uui.command.interface:
     description: Allows the user to use /interface
-    default: false
+    default: op
   uui.command.interface.reload:
     description: Allows the user to use /interface reload
-    default: false
+    default: op

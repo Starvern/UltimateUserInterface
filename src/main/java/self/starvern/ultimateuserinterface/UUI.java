@@ -26,6 +26,12 @@ public final class UUI extends JavaPlugin
 
         new InterfaceCommand();
         new GuiListener();
+
+        GuiManager.getGui("example_menu").getPage(0).getItems("1").forEach(item -> {
+            item.executes(event -> {
+                event.getWhoClicked().sendMessage("banned");
+            });
+        });
     }
 
     @Override

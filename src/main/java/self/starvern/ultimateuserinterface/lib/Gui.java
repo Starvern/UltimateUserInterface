@@ -34,13 +34,16 @@ public class Gui
      * Builds List<GuiPage> from the configuration.
      * @since 0.1.0
      */
-    private void loadPages()
+    public void loadPages()
     {
         this.pages.clear();
         for (String patternName : patterns)
         {
             List<String> pattern = this.config.getStringList(patternName);
-            this.pages.add(new GuiPage(this, pattern));
+
+            GuiPage page = new GuiPage(this, pattern);
+            page.loadItems();
+            this.pages.add(page);
         }
     }
 

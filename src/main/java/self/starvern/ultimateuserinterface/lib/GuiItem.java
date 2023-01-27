@@ -1,5 +1,6 @@
 package self.starvern.ultimateuserinterface.lib;
 
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
@@ -16,17 +17,31 @@ public class GuiItem
     private final Gui gui;
     private final String id;
     private final ItemUtility item;
-    private final NamespacedKey key;
+    private final NamespacedKey key = new NamespacedKey(UUI.getSingleton(), "uui-item-id");
+    private final int slot;
     private final UUID uuid = UUID.randomUUID();
 
     private Consumer<InventoryClickEvent> event;
 
-    public GuiItem(Gui gui, String id)
+    public GuiItem(Gui gui, int slot)
+    {
+        this.gui = gui;
+        this.id = "";
+        this.item = new ItemUtility(Material.AIR);
+        this.slot = slot;
+    }
+
+    public GuiItem(Gui gui, String id, int slot)
     {
         this.gui = gui;
         this.id = id;
         this.item = ItemManager.buildItem(gui.getConfig(), this.id);
-        this.key = new NamespacedKey(UUI.getSingleton(), "uui-item-id");
+        this.slot = slot;
+    }
+
+    public int getSlot()
+    {
+        return this.slot;
     }
 
     /**
@@ -51,10 +66,11 @@ public class GuiItem
      * Creates a duplicate from the GUI file
      * @return An un-altered instance of the item
      * @since 0.1.0
+     * @deprecated Items instances are now split by default.
      */
     public GuiItem duplicate()
     {
-        return new GuiItem(this.gui, this.id);
+        return new GuiItem(this.gui, this.id, this.slot);
     }
 
     /**
