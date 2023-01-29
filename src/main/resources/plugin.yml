@@ -10,7 +10,7 @@ commands:
     permission: uui.command.interface
     aliases: [if]
     permission-message: "Insufficient permissions."
-    usage: interface <gui_name>
+    usage: interface <gui_name | reload>
 permissions:
   uui.command.interface:
     description: Allows the user to use /interface

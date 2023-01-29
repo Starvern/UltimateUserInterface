@@ -12,7 +12,6 @@ public class Gui
 {
     private final File file;
     private final FileConfiguration config;
-
     private final String id;
     private final String title;
     private final List<String> patterns;
@@ -113,7 +112,7 @@ public class Gui
     }
 
     /**
-     * @return A list of all of the pages this GUI has.
+     * @return A list of all the pages this GUI has.
      * @since 0.1.0
      */
     public List<GuiPage> getPages()
@@ -126,9 +125,41 @@ public class Gui
      * @return The index of the page inside the GUI pages list.
      * @since 0.1.2
      */
-    public int getPageIndex(GuiPage page)
+    public int indexOf(GuiPage page)
     {
         return this.pages.indexOf(page);
+    }
+
+    /**
+     * @param page The current page
+     * @return The page that appears afterwards, or the current page if it's last
+     * @since 0.1.7
+     */
+    public GuiPage getNextPage(GuiPage page)
+    {
+        try
+        {
+            return this.pages.get(indexOf(page)+1);
+        }
+        catch (IndexOutOfBoundsException exception)
+        {
+            return page;
+        }
+    }
+
+    /**
+     * @param id The character associated with the item.
+     * @return Every item with this character in all the pages of the GUI.
+     * @since 0.1.7
+     */
+    public List<GuiItem> getAllItems(String id)
+    {
+        List<GuiItem> items = new ArrayList<>();
+        for (GuiPage page : this.pages)
+        {
+            items.addAll(page.getItems(id));
+        }
+        return items;
     }
 }
 

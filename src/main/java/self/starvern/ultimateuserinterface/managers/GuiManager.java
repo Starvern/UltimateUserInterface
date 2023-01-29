@@ -68,4 +68,13 @@ public class GuiManager
         }
         return null;
     }
+
+    /**
+     * @return A list of all loaded GUIs.
+     * @since 0.1.7
+     */
+    public static Set<Gui> getGuis()
+    {
+        return guis;
+    }
 }

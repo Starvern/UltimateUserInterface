@@ -2,16 +2,12 @@ package self.starvern.ultimateuserinterface;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import self.starvern.ultimateuserinterface.events.GuiListener;
-import self.starvern.ultimateuserinterface.lib.Gui;
-import self.starvern.ultimateuserinterface.lib.GuiItem;
-import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.io.File;
-import java.util.List;
 
 public final class UUI extends JavaPlugin
 {
@@ -27,10 +23,8 @@ public final class UUI extends JavaPlugin
         new InterfaceCommand();
         new GuiListener();
 
-        GuiManager.getGui("example_menu").getPage(0).getItems("1").forEach(item -> {
-            item.executes(event -> {
-                event.getWhoClicked().sendMessage("banned");
-            });
+        GuiManager.getGui("example_menu").getAllItems("#").forEach(item -> {
+            item.getItem().setMaterial(Material.BEDROCK);
         });
     }
 

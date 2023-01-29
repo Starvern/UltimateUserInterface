@@ -10,6 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 public class InterfaceCommand implements CommandExecutor
 {
     public InterfaceCommand()
@@ -21,10 +24,12 @@ public class InterfaceCommand implements CommandExecutor
             return;
         }
         command.setExecutor(this);
+        command.setTabCompleter(new InterfaceCommandCompleter());
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
+                             @NotNull String[] args)
     {
         if (!(sender instanceof Player player))
         {
@@ -66,7 +71,17 @@ public class InterfaceCommand implements CommandExecutor
 
         int page = (args.length >= 2) ? Integer.parseInt(args[1]) : 0;
 
-        player.openInventory(gui.getPage(page).getInventory());
+        Player target = player;
+
+        if (args.length >= 3)
+        {
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            {
+                if (onlinePlayer.getName().equalsIgnoreCase(args[1])) target = onlinePlayer;
+            }
+        }
+
+        target.openInventory(gui.getPage(page).getInventory());
 
         return true;
     }
