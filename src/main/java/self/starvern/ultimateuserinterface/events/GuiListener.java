@@ -8,6 +8,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
@@ -34,6 +35,12 @@ public class GuiListener implements Listener
         GuiItem guiItem = page.getItem(item);
         if (guiItem == null) return;
 
-        guiItem.runEvent(event);
+        Bukkit.getPluginManager().callEvent(new GuiItemClickEvent(guiItem, event.getWhoClicked()));
+    }
+
+    @EventHandler
+    public void GuiItemClickEvent(GuiItemClickEvent event)
+    {
+        event.getItem().runEvent(event);
     }
 }

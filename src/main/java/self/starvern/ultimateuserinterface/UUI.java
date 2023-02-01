@@ -5,6 +5,8 @@ import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import self.starvern.ultimateuserinterface.events.GuiListener;
+import self.starvern.ultimateuserinterface.lib.Gui;
+import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.io.File;
@@ -22,10 +24,6 @@ public final class UUI extends JavaPlugin
 
         new InterfaceCommand();
         new GuiListener();
-
-        GuiManager.getGui("example_menu").getAllItems("#").forEach(item -> {
-            item.getItem().setMaterial(Material.BEDROCK);
-        });
     }
 
     @Override

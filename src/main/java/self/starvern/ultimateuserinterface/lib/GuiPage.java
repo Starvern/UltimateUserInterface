@@ -3,6 +3,8 @@ package self.starvern.ultimateuserinterface.lib;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -47,28 +49,27 @@ public class GuiPage
      */
     public GuiPage duplicate()
     {
-        GuiPage page = new GuiPage(this.gui, this.pattern);
-        page.loadItems();
-        return page;
+        return new GuiPage(this.gui, this.pattern).loadItems();
     }
 
     /**
      * Constructs a list of GuiItems based on the pattern
      * @since 0.1.0
      */
-    public void loadItems()
+    public GuiPage loadItems()
     {
+        this.items.clear();
         int slot = 0;
-
         for (String line : this.pattern)
         {
             for (char character : line.toCharArray())
             {
                 String letter = String.valueOf(character);
                 GuiItem item = getConfigItem(letter, slot++);
-                items.add(item);
+                this.items.add(item);
             }
         }
+        return this;
     }
 
     /**
@@ -81,10 +82,10 @@ public class GuiPage
 
         for (String character : baseSection.getKeys(false))
         {
-            if (!character.equalsIgnoreCase(letter)) return new GuiItem(this.gui, letter, slot);
-            return new GuiItem(this.gui, letter, slot);
+            if (!character.equalsIgnoreCase(letter)) return new GuiItem(this, letter, slot);
+            return new GuiItem(this, letter, slot);
         }
-        return new GuiItem(this.gui, slot);
+        return new GuiItem(this, slot);
     }
 
     /**
@@ -153,5 +154,75 @@ public class GuiPage
         }
 
         return items;
+    }
+
+    /**
+     * @return True if the page is the first of the GUI.
+     * @since 0.1.7
+     */
+    public boolean isFirst()
+    {
+        return this.gui.indexOf(this) == 0;
+    }
+
+    /**
+     * @return True if the page is the last of the GUI.
+     * @since 0.1.7
+     */
+    public boolean isLast()
+    {
+        return this.gui.indexOf(this) == this.gui.getPages().size()-1;
+    }
+
+    /**
+     * @return The next page of the GUI, or the first page if it's last.
+     * @since 0.1.7
+     */
+    public GuiPage next()
+    {
+        try
+        {
+            return this.gui.getPage(this.gui.indexOf(this)+1);
+        }
+        catch (IndexOutOfBoundsException exception)
+        {
+            return this.gui.getPage(0);
+        }
+    }
+
+    /**
+     * @return The previous page of the GUI, or the last page if it's first.
+     * @since 0.1.7
+     */
+    public GuiPage last()
+    {
+        try
+        {
+            return this.gui.getPage(this.gui.indexOf(this)-1);
+        }
+        catch (IndexOutOfBoundsException exception)
+        {
+            return this.gui.getPage(this.gui.getPages().size()-1);
+        }
+    }
+
+    /**
+     * Open the GUI page for an entity.
+     * @param entity The entity to open the GUI page for.
+     * @since 0.1.7
+     */
+    public void open(HumanEntity entity)
+    {
+        entity.openInventory(this.getInventory());
+    }
+
+    /**
+     * Open the GUI page for a player.
+     * @param player The player to open the GUI page for.
+     * @since 0.1.7
+     */
+    public void open(Player player)
+    {
+        player.openInventory(this.getInventory());
     }
 }

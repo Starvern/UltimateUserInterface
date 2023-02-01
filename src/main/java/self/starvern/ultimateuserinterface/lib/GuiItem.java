@@ -2,10 +2,10 @@ package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
 
 import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 import self.starvern.ultimateuserinterface.managers.ItemManager;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
@@ -14,28 +14,28 @@ import java.util.function.Consumer;
 
 public class GuiItem
 {
-    private final Gui gui;
+    private final GuiPage page;
     private final String id;
     private final ItemUtility item;
     private final NamespacedKey key = new NamespacedKey(UUI.getSingleton(), "uui-item-id");
     private final int slot;
     private final UUID uuid = UUID.randomUUID();
 
-    private Consumer<InventoryClickEvent> event;
+    private Consumer<GuiItemClickEvent> event;
 
-    public GuiItem(Gui gui, int slot)
+    public GuiItem(GuiPage page, int slot)
     {
-        this.gui = gui;
+        this.page = page;
         this.id = "";
         this.item = new ItemUtility(Material.AIR);
         this.slot = slot;
     }
 
-    public GuiItem(Gui gui, String id, int slot)
+    public GuiItem(GuiPage page, String id, int slot)
     {
-        this.gui = gui;
+        this.page = page;
         this.id = id;
-        this.item = ItemManager.buildItem(gui.getConfig(), this.id);
+        this.item = ItemManager.buildItem(page.getGui().getConfig(), this.id);
         this.slot = slot;
     }
 
@@ -54,23 +54,12 @@ public class GuiItem
     }
 
     /**
-     * @return The GUI this item appears in.
+     * @return The GUI page this item appears in.
      * @since 0.1.0
      */
-    public Gui getGui()
+    public GuiPage getPage()
     {
-        return this.gui;
-    }
-
-    /**
-     * Creates a duplicate from the GUI file
-     * @return An un-altered instance of the item
-     * @since 0.1.0
-     * @deprecated Items instances are now split by default.
-     */
-    public GuiItem duplicate()
-    {
-        return new GuiItem(this.gui, this.id, this.slot);
+        return this.page;
     }
 
     /**
@@ -101,7 +90,7 @@ public class GuiItem
      * @return The instance of the item
      * @since 0.1.0
      */
-    public GuiItem executes(Consumer<InventoryClickEvent> event)
+    public GuiItem executes(Consumer<GuiItemClickEvent> event)
     {
         this.event = event;
         return this;
@@ -112,7 +101,7 @@ public class GuiItem
      * @param event The event to run
      * @since 0.1.0
      */
-    public void runEvent(@NotNull InventoryClickEvent event)
+    public void runEvent(@NotNull GuiItemClickEvent event)
     {
         if (this.event == null) return;
 

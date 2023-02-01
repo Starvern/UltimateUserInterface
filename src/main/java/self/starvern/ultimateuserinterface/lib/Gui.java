@@ -1,5 +1,6 @@
 package self.starvern.ultimateuserinterface.lib;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import self.starvern.ultimateuserinterface.managers.FileManager;
@@ -39,10 +40,7 @@ public class Gui
         for (String patternName : patterns)
         {
             List<String> pattern = this.config.getStringList(patternName);
-
-            GuiPage page = new GuiPage(this, pattern);
-            page.loadItems();
-            this.pages.add(page);
+            this.pages.add(new GuiPage(this, pattern).loadItems());
         }
     }
 
@@ -131,23 +129,6 @@ public class Gui
     }
 
     /**
-     * @param page The current page
-     * @return The page that appears afterwards, or the current page if it's last
-     * @since 0.1.7
-     */
-    public GuiPage getNextPage(GuiPage page)
-    {
-        try
-        {
-            return this.pages.get(indexOf(page)+1);
-        }
-        catch (IndexOutOfBoundsException exception)
-        {
-            return page;
-        }
-    }
-
-    /**
      * @param id The character associated with the item.
      * @return Every item with this character in all the pages of the GUI.
      * @since 0.1.7
@@ -156,10 +137,22 @@ public class Gui
     {
         List<GuiItem> items = new ArrayList<>();
         for (GuiPage page : this.pages)
-        {
             items.addAll(page.getItems(id));
-        }
         return items;
+    }
+
+    /**
+     * Duplicates the first page x times to fulfill the items.
+     * @param amount The amount to ensure
+     * @since 0.1.7
+     */
+    public void ensureSize(String character, int amount)
+    {
+        GuiPage firstPage = pages.get(0);
+        int pageItemSize = firstPage.getItems(character).size();
+
+        for (int index = 0; index <= (amount - pageItemSize) / pageItemSize; index++)
+            this.pages.add(firstPage.duplicate().loadItems());
     }
 }
 

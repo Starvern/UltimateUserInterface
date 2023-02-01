@@ -22,6 +22,8 @@ public class GuiManager
      */
     public static void loadGuis()
     {
+        guis.clear();
+
         File folder = new File(UUI.getSingleton().getDataFolder(), "gui");
 
         File[] files = folder.listFiles();

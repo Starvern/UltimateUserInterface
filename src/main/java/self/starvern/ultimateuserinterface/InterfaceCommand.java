@@ -23,8 +23,8 @@ public class InterfaceCommand implements CommandExecutor
             Bukkit.getLogger().severe("Invalid plugin.yml. Please re-install the plugin.");
             return;
         }
-        command.setExecutor(this);
         command.setTabCompleter(new InterfaceCommandCompleter());
+        command.setExecutor(this);
     }
 
     @Override
