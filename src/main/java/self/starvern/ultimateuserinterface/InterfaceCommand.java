@@ -69,7 +69,19 @@ public class InterfaceCommand implements CommandExecutor
             return false;
         }
 
-        int page = (args.length >= 2) ? Integer.parseInt(args[1]) : 0;
+        int page = 0;
+
+        if (args.length >= 2)
+        {
+            try
+            {
+                page = Integer.parseInt(args[1]);
+            }
+            catch (NumberFormatException exception)
+            {
+                sender.sendMessage("Invalid page number. Defaulting to first page.");
+            }
+        }
 
         Player target = player;
 

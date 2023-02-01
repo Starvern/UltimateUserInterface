@@ -35,7 +35,7 @@ public class GuiListener implements Listener
         GuiItem guiItem = page.getItem(item);
         if (guiItem == null) return;
 
-        Bukkit.getPluginManager().callEvent(new GuiItemClickEvent(guiItem, event.getWhoClicked()));
+        Bukkit.getPluginManager().callEvent(new GuiItemClickEvent(guiItem, event.getWhoClicked(), event.getClick()));
     }
 
     @EventHandler
