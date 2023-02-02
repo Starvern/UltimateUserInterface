@@ -65,27 +65,11 @@ public class GuiPage
             for (char character : line.toCharArray())
             {
                 String letter = String.valueOf(character);
-                GuiItem item = getConfigItem(letter, slot++);
+                GuiItem item = new GuiItem(this, letter, slot++);
                 this.items.add(item);
             }
         }
         return this;
-    }
-
-    /**
-     * @return The generated item from the config with the following letter.
-     * @since 0.1.7
-     */
-    private GuiItem getConfigItem(String letter, int slot)
-    {
-        ConfigurationSection baseSection = this.gui.getConfig().getConfigurationSection("");
-
-        for (String character : baseSection.getKeys(false))
-        {
-            if (!character.equalsIgnoreCase(letter)) return new GuiItem(this, letter, slot);
-            return new GuiItem(this, letter, slot);
-        }
-        return new GuiItem(this, slot);
     }
 
     /**

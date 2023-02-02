@@ -3,6 +3,8 @@ package self.starvern.ultimateuserinterface.lib;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import self.starvern.ultimateuserinterface.managers.FileManager;
 
 import java.io.File;
@@ -153,6 +155,26 @@ public class Gui
 
         for (int index = 0; index <= (amount - pageItemSize) / pageItemSize; index++)
             this.pages.add(firstPage.duplicate().loadItems());
+    }
+
+    /**
+     * Open the GUI page for an entity.
+     * @param entity The entity to open the GUI page for.
+     * @since 0.1.7
+     */
+    public void open(HumanEntity entity)
+    {
+        entity.openInventory(this.getPage(0).getInventory());
+    }
+
+    /**
+     * Open the GUI page for a player.
+     * @param player The player to open the GUI page for.
+     * @since 0.1.7
+     */
+    public void open(Player player)
+    {
+        player.openInventory(this.getPage(0).getInventory());
     }
 }
 
