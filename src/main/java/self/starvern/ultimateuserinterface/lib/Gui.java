@@ -1,11 +1,13 @@
 package self.starvern.ultimateuserinterface.lib;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import self.starvern.ultimateuserinterface.managers.FileManager;
+import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,6 +32,15 @@ public class Gui
         this.pages = new ArrayList<>();
 
         loadPages();
+    }
+
+    /**
+     * @return A clean duplicated version of this Gui.
+     * @since 0.2.3
+     */
+    public Gui duplicate()
+    {
+        return new Gui(this.file);
     }
 
     /**

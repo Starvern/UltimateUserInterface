@@ -11,26 +11,32 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class GuiPage
 {
     private final Gui gui;
+    private String title;
     private final List<String> pattern;
     private final List<GuiItem> items;
-    private final Inventory inventory;
+    private Inventory inventory;
+    private Consumer<GuiItemClickEvent> globalEvent;
 
     public GuiPage(Gui gui, List<String> pattern)
     {
         this.gui = gui;
+        this.title = this.gui.getTitle();
         this.pattern = pattern;
         this.items = new ArrayList<>();
-        this.inventory = Bukkit.createInventory(null, 9 * this.pattern.size(), this.gui.getTitle());
+        this.inventory = Bukkit.createInventory(null, 9 * this.pattern.size(), this.title);
     }
 
     /**
@@ -40,6 +46,69 @@ public class GuiPage
     public Gui getGui()
     {
         return this.gui;
+    }
+
+    /**
+     * Set an event to run anytime an item from this page is clicked.
+     * @param globalEvent The event to run
+     * @return The instance of GuiPage
+     * @since 0.2.3
+     */
+    public GuiPage setGlobalEvent(Consumer<GuiItemClickEvent> globalEvent)
+    {
+        this.globalEvent = globalEvent;
+        return this;
+    }
+
+    /**
+     * Executes the global event for this page.
+     * @param event The event to run.
+     * @return The instance of GuiPage.
+     */
+    public GuiPage runEvent(@NotNull GuiItemClickEvent event)
+    {
+        if (this.globalEvent == null) return this;
+        this.globalEvent.accept(event);
+        return this;
+    }
+
+    /**
+     * Update's the inventory with current items.
+     * @return An instance of GuiPage
+     * @since 0.2.3
+     */
+    public GuiPage update()
+    {
+        this.inventory = Bukkit.createInventory(null, 9 * this.pattern.size(), this.title);
+        return this;
+    }
+
+    /**
+     * Update's the inventory with its original items.
+     * @return An instance of GuiPage
+     * @since 0.2.3
+     */
+    public GuiPage refresh()
+    {
+        return this.update().loadItems();
+    }
+
+    /**
+     * @return The page's title. Defaults to the GUI's title.
+     */
+    public String getTitle()
+    {
+        return this.title;
+    }
+
+    /**
+     * @param title The new title of the page.
+     * @since 0.2.3
+     */
+    public GuiPage setTitle(String title)
+    {
+        this.title = title;
+        return this;
     }
 
     /**
@@ -208,5 +277,22 @@ public class GuiPage
     public void open(Player player)
     {
         player.openInventory(this.getInventory());
+    }
+
+    /**
+     * Gets the item at the specified slot.
+     * @param slot The slot.
+     * @return The instance of GuiItem, or null.
+     * @since 0.2.3
+     */
+    @Nullable
+    public GuiItem getItemAt(int slot)
+    {
+        for (GuiItem item : this.items)
+        {
+            if (item.getSlot() == slot) return item;
+        }
+
+        return null;
     }
 }

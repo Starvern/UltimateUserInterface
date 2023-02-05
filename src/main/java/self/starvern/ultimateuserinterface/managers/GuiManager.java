@@ -3,8 +3,10 @@ package self.starvern.ultimateuserinterface.managers;
 import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.lib.Gui;
+import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
 import javax.annotation.Nullable;
@@ -15,6 +17,7 @@ import java.util.Set;
 public class GuiManager
 {
     private static final Set<Gui> guis = new HashSet<>();
+    private static final Set<Gui> instances = new HashSet<>();
 
     /**
      * Convert all the files in /gui/ to GUIs.
@@ -39,8 +42,16 @@ public class GuiManager
     }
 
     /**
+     * @return All duplicates of any Guis.
+     */
+    public static Set<Gui> getInstances()
+    {
+        return instances;
+    }
+
+    /**
      * @param id The filename of the GUI file.
-     * @return The GUI, or null.
+     * @return A duplicated instance of GUI, or null.
      * @since 0.1.0
      */
     @Nullable
@@ -49,7 +60,11 @@ public class GuiManager
         for (Gui gui : guis)
         {
             if (gui.getId().equalsIgnoreCase(id))
-                return gui;
+            {
+                Gui duplicatedGui = gui.duplicate();
+                instances.add(duplicatedGui);
+                return duplicatedGui;
+            }
         }
         return null;
     }
@@ -63,10 +78,17 @@ public class GuiManager
     public static GuiPage getGuiPage(Inventory inventory)
     {
         if (inventory == null) return null;
-        for (Gui gui : guis)
+        for (ItemStack item : inventory.getContents())
         {
-            for (GuiPage page : gui.getPages())
-                if (page.getInventory().equals(inventory)) return page;
+            for (Gui gui : instances)
+            {
+                for (GuiPage page : gui.getPages())
+                {
+                    GuiItem guiItem = page.getItem(item);
+                    if (guiItem == null) continue;
+                    return page;
+                }
+            }
         }
         return null;
     }

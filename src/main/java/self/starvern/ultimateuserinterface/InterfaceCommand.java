@@ -1,6 +1,7 @@
 package self.starvern.ultimateuserinterface;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -59,6 +60,28 @@ public class InterfaceCommand implements CommandExecutor
 
             sender.sendMessage("Reloaded UltimateUserInterface.");
             UUI.getSingleton().load();
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("test"))
+        {
+            Gui gui = GuiManager.getGui("example_menu");
+            if (gui == null)
+            {
+                sender.sendMessage("gui unknown");
+                return false;
+            }
+
+            gui.getPage(0).setGlobalEvent(event -> {
+                event.getWhoClicked().sendMessage("clicked in page test");
+            });
+
+            gui.getAllItems("1").get(0).executes(event -> {
+                event.getWhoClicked().sendMessage("click on dragon head!");
+            }).getItem().addDisplayName(((Player) sender).getDisplayName()).setMaterial(Material.DRAGON_HEAD);
+
+            gui.open((Player) sender);
+
             return true;
         }
 
