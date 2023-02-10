@@ -2,7 +2,6 @@ package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -10,8 +9,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-
 import org.jetbrains.annotations.NotNull;
+
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 
