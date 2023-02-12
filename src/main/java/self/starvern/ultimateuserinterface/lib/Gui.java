@@ -164,6 +164,8 @@ public class Gui
         GuiPage firstPage = pages.get(0);
         int pageItemSize = firstPage.getItems(character).size();
 
+        if ( amount <= pageItemSize ) return;
+
         for (int index = 0; index <= (amount - pageItemSize) / pageItemSize; index++)
             this.pages.add(firstPage.duplicate().loadItems());
     }

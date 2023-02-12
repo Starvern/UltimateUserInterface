@@ -1,12 +1,10 @@
 package self.starvern.ultimateuserinterface;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import self.starvern.ultimateuserinterface.commands.InterfaceCommand;
 import self.starvern.ultimateuserinterface.events.GuiListener;
-import self.starvern.ultimateuserinterface.lib.Gui;
-import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.io.File;

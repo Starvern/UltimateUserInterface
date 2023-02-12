@@ -1,4 +1,4 @@
-package self.starvern.ultimateuserinterface;
+package self.starvern.ultimateuserinterface.commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
