@@ -172,6 +172,9 @@ public class GuiPage
     @Nullable
     public GuiItem getItem(ItemStack item)
     {
+        if (item == null)
+            return null;
+
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta == null)
             return null;
