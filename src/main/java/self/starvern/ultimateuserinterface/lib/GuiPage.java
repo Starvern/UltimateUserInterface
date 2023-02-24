@@ -2,6 +2,7 @@ package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -9,13 +10,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -167,18 +169,19 @@ public class GuiPage
      * @return The GuiItem, or if the item doesn't match anything, null.
      * @since 0.1.0
      */
-    public Optional<GuiItem> getItem(ItemStack item)
+    @Nullable
+    public GuiItem getItem(ItemStack item)
     {
         if (item == null)
-            return Optional.empty();
+            return null;
 
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta == null)
-            return Optional.empty();
+            return null;
 
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
         if (!container.has(new NamespacedKey(UUI.getSingleton(), "uui-item-id"), PersistentDataType.STRING))
-            return Optional.empty();
+            return null;
 
         String rawUUID = container.get(new NamespacedKey(UUI.getSingleton(), "uui-item-id"), PersistentDataType.STRING);
         UUID uuid = UUID.fromString(rawUUID);
@@ -186,9 +189,9 @@ public class GuiPage
         for (GuiItem guiItem : this.items)
         {
             if (guiItem.getUniqueId().equals(uuid))
-                return Optional.of(guiItem);
+                return guiItem;
         }
-        return Optional.empty();
+        return null;
     }
 
     /**
@@ -285,13 +288,14 @@ public class GuiPage
      * @return The instance of GuiItem, or null.
      * @since 0.2.3
      */
-    public Optional<GuiItem> getItemAt(int slot)
+    @Nullable
+    public GuiItem getItemAt(int slot)
     {
         for (GuiItem item : this.items)
         {
-            if (item.getSlot() == slot) return Optional.of(item);
+            if (item.getSlot() == slot) return item;
         }
 
-        return Optional.empty();
+        return null;
     }
 }
