@@ -2,7 +2,6 @@ package self.starvern.ultimateuserinterface.managers;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.inventory.ItemStack;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
 import java.util.List;

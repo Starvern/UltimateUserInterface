@@ -1,7 +1,5 @@
 package self.starvern.ultimateuserinterface.managers;
 
-import org.bukkit.Bukkit;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import self.starvern.ultimateuserinterface.UUI;
@@ -9,9 +7,9 @@ import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class GuiManager
@@ -54,8 +52,7 @@ public class GuiManager
      * @return A duplicated instance of GUI, or null.
      * @since 0.1.0
      */
-    @Nullable
-    public static Gui getGui(String id)
+    public static Optional<Gui> getGui(String id)
     {
         for (Gui gui : guis)
         {
@@ -63,10 +60,10 @@ public class GuiManager
             {
                 Gui duplicatedGui = gui.duplicate();
                 instances.add(duplicatedGui);
-                return duplicatedGui;
+                return Optional.of(duplicatedGui);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -74,23 +71,25 @@ public class GuiManager
      * @return The GuiPage this inventory is owned by, or null
      * @since 0.1.0
      */
-    @Nullable
-    public static GuiPage getGuiPage(Inventory inventory)
+    public static Optional<GuiPage> getGuiPage(Inventory inventory)
     {
-        if (inventory == null) return null;
+        if (inventory == null)
+            return Optional.empty();
+
         for (ItemStack item : inventory.getContents())
         {
             for (Gui gui : instances)
             {
                 for (GuiPage page : gui.getPages())
                 {
-                    GuiItem guiItem = page.getItem(item);
-                    if (guiItem == null) continue;
-                    return page;
+                    Optional<GuiItem> guiItemOptional = page.getItem(item);
+                    if (guiItemOptional.isPresent())
+                        return Optional.of(page);
+
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**

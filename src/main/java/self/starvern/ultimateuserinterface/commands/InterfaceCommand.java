@@ -1,4 +1,4 @@
-package self.starvern.ultimateuserinterface;
+package self.starvern.ultimateuserinterface.commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -8,11 +8,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class InterfaceCommand implements CommandExecutor
 {
@@ -21,7 +21,7 @@ public class InterfaceCommand implements CommandExecutor
         PluginCommand command = UUI.getSingleton().getCommand("interface");
         if (command == null)
         {
-            Bukkit.getLogger().severe("Invalid plugin.yml. Please re-install the plugin.");
+            UUI.getSingleton().getLogger().severe("Invalid plugin.yml. Please re-install the plugin.");
             return;
         }
         command.setTabCompleter(new InterfaceCommandCompleter());
@@ -65,12 +65,14 @@ public class InterfaceCommand implements CommandExecutor
 
         if (args[0].equalsIgnoreCase("test"))
         {
-            Gui gui = GuiManager.getGui("example_menu");
-            if (gui == null)
+            Optional<Gui> guiOptional = GuiManager.getGui("example_menu");
+            if (guiOptional.isEmpty())
             {
                 sender.sendMessage("gui unknown");
                 return false;
             }
+
+            Gui gui = guiOptional.get();
 
             gui.getPage(0).setGlobalEvent(event -> {
                 event.getWhoClicked().sendMessage("clicked in page test");
@@ -85,8 +87,8 @@ public class InterfaceCommand implements CommandExecutor
             return true;
         }
 
-        Gui gui = GuiManager.getGui(args[0]);
-        if (gui == null)
+        Optional<Gui> guiOptional = GuiManager.getGui(args[0]);
+        if (guiOptional.isEmpty())
         {
             player.sendMessage("Gui not found");
             return false;
@@ -116,7 +118,7 @@ public class InterfaceCommand implements CommandExecutor
             }
         }
 
-        target.openInventory(gui.getPage(page).getInventory());
+        target.openInventory(guiOptional.get().getPage(page).getInventory());
 
         return true;
     }

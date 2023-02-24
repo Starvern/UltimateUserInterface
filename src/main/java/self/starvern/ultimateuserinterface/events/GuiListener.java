@@ -6,14 +6,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
-import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 import self.starvern.ultimateuserinterface.utils.InventoryUtility;
+
+import java.util.Optional;
 
 public class GuiListener implements Listener
 {
@@ -27,16 +27,19 @@ public class GuiListener implements Listener
     {
         Inventory inventory = event.getInventory();
 
-        GuiPage page = GuiManager.getGuiPage(inventory);
-        if (page == null) return;
+        Optional<GuiPage> pageOptional = GuiManager.getGuiPage(inventory);
+        if (pageOptional.isEmpty())
+            return;
 
         ItemStack item = event.getCurrentItem();
-        if (item == null) return;
+        if (item == null)
+            return;
 
-        GuiItem guiItem = page.getItemAt(InventoryUtility.getSlot(inventory, item));
-        if (guiItem == null) return;
+        Optional<GuiItem> guiItemOptional = pageOptional.get().getItemAt(InventoryUtility.getSlot(inventory, item));
+        if (guiItemOptional.isEmpty()) return;
 
-        Bukkit.getPluginManager().callEvent(new GuiItemClickEvent(guiItem, event.getWhoClicked(), event.getClick()));
+        Bukkit.getPluginManager().callEvent(
+                new GuiItemClickEvent(guiItemOptional.get(), event.getWhoClicked(), event.getClick()));
     }
 
     @EventHandler

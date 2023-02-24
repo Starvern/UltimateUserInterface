@@ -1,13 +1,9 @@
 package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.configuration.file.FileConfiguration;
-
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import self.starvern.ultimateuserinterface.managers.FileManager;
-import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,7 +21,7 @@ public class Gui
     public Gui(File file)
     {
         this.file = file;
-        this.config = FileManager.getConfig(file);
+        this.config = YamlConfiguration.loadConfiguration(file);
         this.id = file.getName().replace(".yml", "");
         this.title = this.config.getString("title", "Gui");
         this.patterns = this.config.getStringList("patterns");
