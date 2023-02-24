@@ -1,8 +1,6 @@
 package self.starvern.ultimateuserinterface;
 
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import self.starvern.ultimateuserinterface.commands.InterfaceCommand;
 import self.starvern.ultimateuserinterface.events.GuiListener;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
@@ -39,7 +37,8 @@ public final class UUI extends JavaPlugin
     {
         File folder = new File(UUI.getSingleton().getDataFolder(), "gui");
         boolean created = folder.mkdirs();
-        if (created) Bukkit.getLogger().info("Created gui folder");
+        if (created)
+            UUI.getSingleton().getLogger().info("Created gui folder");
 
         saveResource("gui/example_menu.yml", false);
 
