@@ -35,7 +35,7 @@ public class GuiManager
 
         for (File file : files)
         {
-            guis.add(new Gui(file));
+            guis.add(new Gui(file).loadPages());
         }
     }
 

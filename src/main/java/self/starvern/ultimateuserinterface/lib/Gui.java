@@ -26,8 +26,6 @@ public class Gui
         this.title = this.config.getString("title", "Gui");
         this.patterns = this.config.getStringList("patterns");
         this.pages = new ArrayList<>();
-
-        loadPages();
     }
 
     /**
@@ -36,14 +34,15 @@ public class Gui
      */
     public Gui duplicate()
     {
-        return new Gui(this.file);
+        return new Gui(this.file).loadPages();
     }
 
     /**
      * Builds List<GuiPage> from the configuration.
+     * @return Instance of Gui
      * @since 0.1.0
      */
-    public void loadPages()
+    public Gui loadPages()
     {
         this.pages.clear();
         for (String patternName : patterns)
@@ -51,6 +50,7 @@ public class Gui
             List<String> pattern = this.config.getStringList(patternName);
             this.pages.add(new GuiPage(this, pattern).loadItems());
         }
+        return this;
     }
 
     /**

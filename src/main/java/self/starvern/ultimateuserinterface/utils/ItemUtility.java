@@ -174,15 +174,6 @@ public class ItemUtility
     }
 
     /**
-     * @return The material of the item.
-     * @since 0.1.0
-     */
-    public Material getMaterial()
-    {
-        return material;
-    }
-
-    /**
      * Makes the item enchanted based on the value.
      * @param value Whether to make it enchanted.
      * @return The instance of ItemUtiltiy.
@@ -192,6 +183,24 @@ public class ItemUtility
     {
         this.enchanted = value;
         return this;
+    }
+
+    /**
+     * @return True if the item is enchanted.
+     * @since 0.2.5
+     */
+    public boolean isEnchanted()
+    {
+        return this.enchanted;
+    }
+
+    /**
+     * @return The material of the item.
+     * @since 0.1.0
+     */
+    public Material getMaterial()
+    {
+        return this.material;
     }
 
     /**
