@@ -164,7 +164,7 @@ public class Gui
      */
     public void open(HumanEntity entity)
     {
-        entity.openInventory(this.getPage(0).getInventory());
+        entity.openInventory(this.getPage(0).getInventory(entity));
     }
 
     /**
@@ -174,7 +174,7 @@ public class Gui
      */
     public void open(Player player)
     {
-        player.openInventory(this.getPage(0).getInventory());
+        player.openInventory(this.getPage(0).getInventory(player));
     }
 }
 

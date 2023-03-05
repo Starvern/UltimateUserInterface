@@ -10,6 +10,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+<<<<<<< Updated upstream
+=======
+import org.jetbrains.annotations.NotNull;
+
+import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.api.GuiCloseEvent;
+import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
+import self.starvern.ultimateuserinterface.managers.InventoryManager;
+>>>>>>> Stashed changes
 
 import self.starvern.ultimateuserinterface.UUI;
 
@@ -23,14 +32,22 @@ public class GuiPage
     private final Gui gui;
     private final List<String> pattern;
     private final List<GuiItem> items;
+<<<<<<< Updated upstream
     private final Inventory inventory;
+=======
+    private Consumer<GuiItemClickEvent> globalEvent;
+    private Consumer<GuiCloseEvent> closeEvent;
+>>>>>>> Stashed changes
 
     public GuiPage(Gui gui, List<String> pattern)
     {
         this.gui = gui;
         this.pattern = pattern;
         this.items = new ArrayList<>();
+<<<<<<< Updated upstream
         this.inventory = Bukkit.createInventory(null, 9 * this.pattern.size(), this.gui.getTitle());
+=======
+>>>>>>> Stashed changes
     }
 
     /**
@@ -43,6 +60,77 @@ public class GuiPage
     }
 
     /**
+<<<<<<< Updated upstream
+=======
+     * Set an event to run anytime an item from this page is clicked.
+     * @param globalEvent The event to run.
+     * @return The instance of GuiPage
+     * @since 0.2.3
+     */
+    public GuiPage setGlobalEvent(Consumer<GuiItemClickEvent> globalEvent)
+    {
+        this.globalEvent = globalEvent;
+        return this;
+    }
+
+    /**
+     * Set an event to run anytime the Gui is closed.
+     * @param closeEvent The event to run.
+     * @return The instance of GuiPage
+     * @since 0.2.5
+     */
+    public GuiPage setCloseEvent(Consumer<GuiCloseEvent> closeEvent)
+    {
+        this.closeEvent = closeEvent;
+        return this;
+    }
+
+    /**
+     * Executes the global event for this page.
+     * @param event The event to run.
+     * @return The instance of GuiPage.
+     * @since 0.2.3
+     */
+    public GuiPage runClickEvent(@NotNull GuiItemClickEvent event)
+    {
+        if (this.globalEvent == null) return this;
+        this.globalEvent.accept(event);
+        return this;
+    }
+
+    /**
+     * Executes the close event for this page.
+     * @param event The event to run.
+     * @return The instance of GuiPage.
+     * @since 0.2.3
+     */
+    public GuiPage runCloseEvent(@NotNull GuiCloseEvent event)
+    {
+        if (this.closeEvent == null) return this;
+        this.closeEvent.accept(event);
+        return this;
+    }
+
+    /**
+     * @return The page's title. Defaults to the GUI's title.
+     */
+    public String getTitle()
+    {
+        return this.title;
+    }
+
+    /**
+     * @param title The new title of the page.
+     * @since 0.2.3
+     */
+    public GuiPage setTitle(String title)
+    {
+        this.title = title;
+        return this;
+    }
+
+    /**
+>>>>>>> Stashed changes
      * Creates a clean duplicate of the page.
      * @return The new instance of GuiPage.
      * @since 0.1.5
@@ -76,14 +164,23 @@ public class GuiPage
      * @return The inventory constructed from the pattern.
      * @since 0.1.0
      */
-    public Inventory getInventory()
+    public Inventory getInventory(HumanEntity entity)
     {
+        int rows = 9 * this.pattern.size();
+        Inventory inventory = Bukkit.createInventory(null, Math.min(rows, 54), this.title);
+
         for (GuiItem item : this.items)
         {
-            this.inventory.setItem(item.getSlot(), item.getItem().build());
+            inventory.setItem(item.getSlot(), item.getItem().build());
         }
 
-        return this.inventory;
+        if (rows > 54)
+        {
+            InventoryManager.saveInventory(entity);
+            entity.getInventory().clear();
+        }
+
+        return inventory;
     }
 
     /**
@@ -111,7 +208,8 @@ public class GuiPage
         if (!container.has(new NamespacedKey(UUI.getSingleton(), "uui-item-id"), PersistentDataType.STRING))
             return null;
 
-        String rawUUID = container.get(new NamespacedKey(UUI.getSingleton(), "uui-item-id"), PersistentDataType.STRING);
+        String rawUUID = container.get(new NamespacedKey(UUI.getSingleton(), "uui-item-id"),
+                PersistentDataType.STRING);
         UUID uuid = UUID.fromString(rawUUID);
 
         for (GuiItem guiItem : this.items)
@@ -197,7 +295,7 @@ public class GuiPage
      */
     public void open(HumanEntity entity)
     {
-        entity.openInventory(this.getInventory());
+        entity.openInventory(this.getInventory(entity));
     }
 
     /**
@@ -207,6 +305,6 @@ public class GuiPage
      */
     public void open(Player player)
     {
-        player.openInventory(this.getInventory());
+        player.openInventory(this.getInventory(player));
     }
 }

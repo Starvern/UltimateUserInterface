@@ -93,7 +93,11 @@ public class InterfaceCommand implements CommandExecutor
             }
         }
 
+<<<<<<< Updated upstream:src/main/java/self/starvern/ultimateuserinterface/InterfaceCommand.java
         target.openInventory(gui.getPage(page).getInventory());
+=======
+        guiOptional.get().getPage(page).open(target);
+>>>>>>> Stashed changes:src/main/java/self/starvern/ultimateuserinterface/commands/InterfaceCommand.java
 
         return true;
     }
