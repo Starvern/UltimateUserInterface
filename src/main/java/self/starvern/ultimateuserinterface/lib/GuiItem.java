@@ -5,7 +5,6 @@ import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
-import self.starvern.ultimateuserinterface.managers.ItemManager;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
 import java.util.UUID;
@@ -16,26 +15,28 @@ public class GuiItem
     private final GuiPage page;
     private final String id;
     private final ItemUtility item;
-    private final NamespacedKey key = new NamespacedKey(UUI.getSingleton(), "uui-item-id");
+    private final NamespacedKey key;
     private final int slot;
     private final UUID uuid = UUID.randomUUID();
 
     private Consumer<GuiItemClickEvent> event;
 
-    public GuiItem(GuiPage page, int slot)
+    public GuiItem(UUI api, GuiPage page, int slot)
     {
         this.page = page;
         this.id = "";
         this.item = new ItemUtility(Material.AIR);
         this.slot = slot;
+        this.key = new NamespacedKey(api.getPlugin(), "uui-item-id");
     }
 
-    public GuiItem(GuiPage page, String id, int slot)
+    public GuiItem(UUI api, GuiPage page, String id, int slot)
     {
         this.page = page;
         this.id = id;
-        this.item = ItemManager.buildItem(page.getGui().getConfig(), this.id);
+        this.item = new ItemUtility(page.getGui().getConfig(), this.id);
         this.slot = slot;
+        this.key = new NamespacedKey(api.getPlugin(), "uui-item-id");
     }
 
     public int getSlot()

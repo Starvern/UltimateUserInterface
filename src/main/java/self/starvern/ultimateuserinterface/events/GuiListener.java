@@ -6,21 +6,22 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
-import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
-import self.starvern.ultimateuserinterface.managers.GuiManager;
 import self.starvern.ultimateuserinterface.utils.InventoryUtility;
 
 import java.util.Optional;
 
 public class GuiListener implements Listener
 {
-    public GuiListener()
+    private final UUIPlugin plugin;
+
+    public GuiListener(UUIPlugin plugin)
     {
-        Bukkit.getPluginManager().registerEvents(this, UUI.getSingleton());
+        this.plugin = plugin;
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -28,7 +29,7 @@ public class GuiListener implements Listener
     {
         Inventory inventory = event.getInventory();
 
-        Optional<GuiPage> pageOptional = GuiManager.getGuiPage(inventory);
+        Optional<GuiPage> pageOptional = plugin.getApi().getGuiManager().getGuiPage(inventory);
         if (pageOptional.isEmpty()) return;
 
         ItemStack item = event.getCurrentItem();

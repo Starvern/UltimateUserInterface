@@ -7,6 +7,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 
@@ -16,11 +17,20 @@ import java.util.Optional;
 
 public class InterfaceCommandCompleter implements TabCompleter
 {
+    private final UUIPlugin plugin;
+
+    public InterfaceCommandCompleter(UUIPlugin plugin)
+    {
+        this.plugin = plugin;
+    }
+
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
                                       @NotNull String[] args)
     {
+        GuiManager guiManager = plugin.getApi().getGuiManager();
+
         List<String> suggestions = new ArrayList<>();
 
         if (!sender.hasPermission("uui.command.interface"))
@@ -31,13 +41,13 @@ public class InterfaceCommandCompleter implements TabCompleter
             if (sender.hasPermission("uui.command.interface.reload"))
                 suggestions.add("reload");
 
-            for (Gui gui : GuiManager.getGuis())
+            for (Gui gui : guiManager.getGuis())
                 suggestions.add(gui.getId());
         }
 
         if (args.length == 2)
         {
-            Optional<Gui> guiOptional = GuiManager.getGui(args[0]);
+            Optional<Gui> guiOptional = guiManager.getGui(args[0]);
             if (guiOptional.isEmpty()) return suggestions;
 
             for (int page = 0; page < guiOptional.get().getPages().size(); page++)

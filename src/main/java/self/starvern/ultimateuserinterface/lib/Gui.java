@@ -4,6 +4,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import self.starvern.ultimateuserinterface.UUI;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -11,6 +12,8 @@ import java.util.List;
 
 public class Gui
 {
+    private final UUI api;
+
     private final File file;
     private final FileConfiguration config;
     private final String id;
@@ -18,8 +21,9 @@ public class Gui
     private final List<String> patterns;
     private final List<GuiPage> pages;
 
-    public Gui(File file)
+    public Gui(UUI api, File file)
     {
+        this.api = api;
         this.file = file;
         this.config = YamlConfiguration.loadConfiguration(file);
         this.id = file.getName().replace(".yml", "");
@@ -34,7 +38,7 @@ public class Gui
      */
     public Gui duplicate()
     {
-        return new Gui(this.file).loadPages();
+        return new Gui(this.api, this.file).loadPages();
     }
 
     /**
@@ -48,7 +52,7 @@ public class Gui
         for (String patternName : patterns)
         {
             List<String> pattern = this.config.getStringList(patternName);
-            this.pages.add(new GuiPage(this, pattern).loadItems());
+            this.pages.add(new GuiPage(this.api, this, pattern).loadItems());
         }
         return this;
     }

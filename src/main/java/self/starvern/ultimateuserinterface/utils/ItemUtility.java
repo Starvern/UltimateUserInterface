@@ -2,6 +2,7 @@ package self.starvern.ultimateuserinterface.utils;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -27,6 +28,30 @@ public class ItemUtility
     {
         this.material = material;
         this.flags.addAll(List.of(ItemFlag.HIDE_POTION_EFFECTS, ItemFlag.HIDE_ATTRIBUTES));
+    }
+
+    public ItemUtility(FileConfiguration config, String path)
+    {
+        String name = config.getString(path + ".name", "UNKNOWN");
+        String materialName = config.getString(path + ".material", "AIR");
+        boolean enchanted = config.getBoolean(path + ".enchanted", false);
+        List<String> lore = config.getStringList(path + ".lore");
+
+        Material material;
+
+        try
+        {
+            material = Material.valueOf(materialName);
+        }
+        catch (IllegalArgumentException exception)
+        {
+            material = Material.STONE;
+        }
+
+        this.material = material;
+        this.addDisplayName(name);
+        this.addLore(lore);
+        this.makeEnchanted(enchanted);
     }
 
     public ItemStack build()

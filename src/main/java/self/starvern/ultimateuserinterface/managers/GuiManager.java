@@ -2,7 +2,9 @@ package self.starvern.ultimateuserinterface.managers;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
 import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
@@ -14,18 +16,27 @@ import java.util.Set;
 
 public class GuiManager
 {
-    private static final Set<Gui> guis = new HashSet<>();
-    private static final Set<Gui> instances = new HashSet<>();
+    private final UUI api;
+
+    private final Set<Gui> guis;
+    private final Set<Gui> instances;
+
+    public GuiManager(UUI api)
+    {
+        this.api = api;
+        guis = new HashSet<>();
+        instances = new HashSet<>();
+    }
 
     /**
      * Convert all the files in /gui/ to GUIs.
      * @since 0.1.0
      */
-    public static void loadGuis()
+    public void loadGuis()
     {
         guis.clear();
 
-        File folder = new File(UUI.getSingleton().getDataFolder(), "gui");
+        File folder = new File(UUIPlugin.getSingleton().getDataFolder(), "gui");
 
         File[] files = folder.listFiles();
         if (files == null)
@@ -35,14 +46,14 @@ public class GuiManager
 
         for (File file : files)
         {
-            guis.add(new Gui(file).loadPages());
+            guis.add(new Gui(this.api, file).loadPages());
         }
     }
 
     /**
      * @return All duplicates of any Guis.
      */
-    public static Set<Gui> getInstances()
+    public Set<Gui> getInstances()
     {
         return instances;
     }
@@ -52,7 +63,7 @@ public class GuiManager
      * @return A duplicated instance of GUI, or null.
      * @since 0.1.0
      */
-    public static Optional<Gui> getGui(String id)
+    public Optional<Gui> getGui(String id)
     {
         for (Gui gui : guis)
         {
@@ -71,7 +82,7 @@ public class GuiManager
      * @return The GuiPage this inventory is owned by, or null
      * @since 0.1.0
      */
-    public static Optional<GuiPage> getGuiPage(Inventory inventory)
+    public Optional<GuiPage> getGuiPage(Inventory inventory)
     {
         if (inventory == null)
             return Optional.empty();
@@ -96,7 +107,7 @@ public class GuiManager
      * @return A list of all loaded GUIs.
      * @since 0.1.7
      */
-    public static Set<Gui> getGuis()
+    public Set<Gui> getGuis()
     {
         return guis;
     }
