@@ -49,9 +49,9 @@ public class ItemUtility
         }
 
         this.material = material;
-        this.addDisplayName(name);
-        this.addLore(lore);
-        this.makeEnchanted(enchanted);
+        this.displayName = name;
+        this.lore = lore;
+        this.enchanted = enchanted;
     }
 
     public ItemStack build()
