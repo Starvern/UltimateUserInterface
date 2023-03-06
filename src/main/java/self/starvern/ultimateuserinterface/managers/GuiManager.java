@@ -36,7 +36,7 @@ public class GuiManager
     {
         guis.clear();
 
-        File folder = new File(UUIPlugin.getSingleton().getDataFolder(), "gui");
+        File folder = new File(this.api.getPlugin().getDataFolder(), "gui");
 
         File[] files = folder.listFiles();
         if (files == null)

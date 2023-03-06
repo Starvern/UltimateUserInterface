@@ -8,13 +8,11 @@ import java.io.File;
 
 public class UUIPlugin extends JavaPlugin
 {
-    private static UUIPlugin singleton;
     private static UUI api;
 
     @Override
     public void onEnable()
     {
-        singleton = this;
         api = new UUI(this);
 
         load();
@@ -26,13 +24,7 @@ public class UUIPlugin extends JavaPlugin
     @Override
     public void onDisable()
     {
-        singleton = null;
         api = null;
-    }
-
-    public static UUIPlugin getSingleton()
-    {
-        return singleton;
     }
 
     public UUI getApi()
