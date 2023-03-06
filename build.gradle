@@ -1,10 +1,9 @@
 plugins {
     id 'java'
-    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 group = 'self.starvern'
-version = '0.3.1'
+version = '0.3.3'
 
 repositories {
     mavenCentral()
@@ -24,20 +23,27 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
 }
 
-shadowJar {
-    archiveFileName = "UltimateUserInterface-" + findProperty("version") + ".jar"
-}
-
-compileJava.options.encoding = 'UTF-8'
-
-artifacts {
-    archives shadowJar
-}
-
-task message {
-    doLast {
-        println 'Thank you for compiling UltimateUserInterface by Starvern'
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
 }
 
-build.finalizedBy message
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
