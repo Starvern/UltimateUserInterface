@@ -1,9 +1,10 @@
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 group = 'self.starvern'
-version = '0.3.4'
+version = '0.3.5'
 
 repositories {
     mavenCentral()
@@ -23,27 +24,22 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
 }
 
-def targetJavaVersion = 17
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
-tasks.withType(JavaCompile).configureEach {
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        options.release = targetJavaVersion
-    }
+shadowJar {
+    archiveFileName = project.name + "-" + findProperty("version") + ".jar";
+
+    relocate 'org.jetbrains.annotations', 'self.starvern.ultimateuserinterface.annotations'
+    relocate 'org.intellij.lang.annotations', 'self.starvern.ultimateuserinterface.annotations'
 }
 
-processResources {
-    def props = [version: version]
-    inputs.properties props
-    filteringCharset 'UTF-8'
-    filesMatching('plugin.yml') {
-        expand props
-    }
+compileJava {
+    options.encoding = "UTF-8"
+    options.release.set(17)
+}
+
+artifacts {
+    archives shadowJar
 }

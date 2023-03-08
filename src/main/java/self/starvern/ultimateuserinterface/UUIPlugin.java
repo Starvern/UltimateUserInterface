@@ -8,17 +8,17 @@ import java.io.File;
 
 public class UUIPlugin extends JavaPlugin
 {
-    private static UUI api;
+    private UUI api;
 
     @Override
     public void onEnable()
     {
-        api = new UUI(this);
+        this.api = new UUI(this);
 
         load();
 
         new InterfaceCommand(this);
-        new GuiListener(this);
+        new GuiListener(this.api);
     }
 
     @Override
