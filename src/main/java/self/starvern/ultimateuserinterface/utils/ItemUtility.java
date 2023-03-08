@@ -12,6 +12,7 @@ import self.starvern.ultimateuserinterface.managers.ChatManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 public class ItemUtility
@@ -28,6 +29,19 @@ public class ItemUtility
     {
         this.material = material;
         this.flags.addAll(List.of(ItemFlag.HIDE_POTION_EFFECTS, ItemFlag.HIDE_ATTRIBUTES));
+    }
+
+    public ItemUtility(ItemStack itemStack)
+    {
+        this.material = itemStack.getType();
+
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) return;
+
+        this.displayName = itemMeta.getDisplayName();
+        this.lore = itemMeta.getLore();
+        this.enchanted = itemMeta.hasEnchants();
+        this.flags.addAll(itemMeta.getItemFlags());
     }
 
     public ItemUtility(FileConfiguration config, String path)
