@@ -182,9 +182,7 @@ public class ItemUtility
      */
     public ItemUtility updateLore(Function<List<String>, List<String>> editorFunction)
     {
-        List<String> oldLore = this.lore;
-        this.lore.clear();
-        this.lore.addAll(editorFunction.apply(oldLore));
+        this.lore = editorFunction.apply(this.lore);
         return this;
     }
 
