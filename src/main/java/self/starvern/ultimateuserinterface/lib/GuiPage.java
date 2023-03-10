@@ -11,6 +11,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ import java.util.function.Consumer;
 
 public class GuiPage
 {
+    private final UUI api;
+
     private final Gui gui;
     private String title;
     private final List<String> pattern;
@@ -28,13 +31,14 @@ public class GuiPage
     private Inventory inventory;
     private Consumer<GuiItemClickEvent> globalEvent;
 
-    public GuiPage(Gui gui, List<String> pattern)
+    public GuiPage(UUI api, Gui gui, List<String> pattern)
     {
+        this.api = api;
         this.gui = gui;
         this.title = this.gui.getTitle();
         this.pattern = pattern;
         this.items = new ArrayList<>();
-        this.inventory = Bukkit.createInventory(null, 9 * this.pattern.size(), this.title);
+        this.inventory = Bukkit.createInventory(null, Math.min(9 * this.pattern.size(), 54), this.title);
     }
 
     /**
@@ -116,7 +120,7 @@ public class GuiPage
      */
     public GuiPage duplicate()
     {
-        return new GuiPage(this.gui, this.pattern).loadItems();
+        return new GuiPage(this.api, this.gui, this.pattern).loadItems();
     }
 
     /**
@@ -132,7 +136,7 @@ public class GuiPage
             for (char character : line.toCharArray())
             {
                 String letter = String.valueOf(character);
-                GuiItem item = new GuiItem(this, letter, slot++);
+                GuiItem item = new GuiItem(this.api, this, letter, slot++);
                 this.items.add(item);
             }
         }
@@ -177,10 +181,10 @@ public class GuiPage
             return Optional.empty();
 
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-        if (!container.has(new NamespacedKey(UUI.getSingleton(), "uui-item-id"), PersistentDataType.STRING))
+        if (!container.has(new NamespacedKey(api.getPlugin(), "uui-item-id"), PersistentDataType.STRING))
             return Optional.empty();
 
-        String rawUUID = container.get(new NamespacedKey(UUI.getSingleton(), "uui-item-id"), PersistentDataType.STRING);
+        String rawUUID = container.get(new NamespacedKey(api.getPlugin(), "uui-item-id"), PersistentDataType.STRING);
         UUID uuid = UUID.fromString(rawUUID);
 
         for (GuiItem guiItem : this.items)

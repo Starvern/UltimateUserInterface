@@ -1,47 +1,38 @@
 package self.starvern.ultimateuserinterface;
 
-import org.bukkit.plugin.java.JavaPlugin;
-import self.starvern.ultimateuserinterface.commands.InterfaceCommand;
-import self.starvern.ultimateuserinterface.events.GuiListener;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.ServicePriority;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
+import self.starvern.ultimateuserinterface.managers.ItemInputManager;
 
-import java.io.File;
-
-public final class UUI extends JavaPlugin
+public class UUI
 {
-    private static UUI singleton;
+    private final UUIPlugin plugin;
 
-    @Override
-    public void onEnable()
+    private final GuiManager guiManager;
+    private final ItemInputManager itemInputManager;
+
+    protected UUI(UUIPlugin plugin)
     {
-        singleton = this;
+        this.plugin = plugin;
+        this.guiManager = new GuiManager(this);
+        this.itemInputManager = new ItemInputManager();
 
-        load();
-
-        new InterfaceCommand();
-        new GuiListener();
+        Bukkit.getServicesManager().register(UUI.class, this, this.plugin, ServicePriority.Normal);
     }
 
-    @Override
-    public void onDisable()
+    public GuiManager getGuiManager()
     {
-        singleton = null;
+        return guiManager;
     }
 
-    public static UUI getSingleton()
+    public UUIPlugin getPlugin()
     {
-        return singleton;
+        return plugin;
     }
 
-    public void load()
+    public ItemInputManager getItemInputManager()
     {
-        File folder = new File(UUI.getSingleton().getDataFolder(), "gui");
-        boolean created = folder.mkdirs();
-        if (created)
-            UUI.getSingleton().getLogger().info("Created gui folder");
-
-        saveResource("gui/example_menu.yml", false);
-
-        GuiManager.loadGuis();
+        return itemInputManager;
     }
 }

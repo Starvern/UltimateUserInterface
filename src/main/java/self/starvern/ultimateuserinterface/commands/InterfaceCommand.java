@@ -6,26 +6,26 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-
 import org.jetbrains.annotations.NotNull;
-
-import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.lib.Gui;
-import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.util.Optional;
 
 public class InterfaceCommand implements CommandExecutor
 {
-    public InterfaceCommand()
+    private final UUIPlugin plugin;
+
+    public InterfaceCommand(UUIPlugin plugin)
     {
-        PluginCommand command = UUI.getSingleton().getCommand("interface");
+        this.plugin = plugin;
+        PluginCommand command = plugin.getCommand("interface");
         if (command == null)
         {
-            UUI.getSingleton().getLogger().severe("Invalid plugin.yml. Please re-install the plugin.");
+            plugin.getLogger().severe("Invalid plugin.yml. Please re-install the plugin.");
             return;
         }
-        command.setTabCompleter(new InterfaceCommandCompleter());
+        command.setTabCompleter(new InterfaceCommandCompleter(this.plugin));
         command.setExecutor(this);
     }
 
@@ -60,11 +60,11 @@ public class InterfaceCommand implements CommandExecutor
             }
 
             sender.sendMessage("Reloaded UltimateUserInterface.");
-            UUI.getSingleton().load();
+            plugin.load();
             return true;
         }
 
-        Optional<Gui> guiOptional = GuiManager.getGui(args[0]);
+        Optional<Gui> guiOptional = plugin.getApi().getGuiManager().getGui(args[0]);
         if (guiOptional.isEmpty())
         {
             player.sendMessage("Gui not found");
