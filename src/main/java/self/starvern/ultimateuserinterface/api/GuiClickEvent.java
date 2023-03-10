@@ -6,29 +6,45 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.ClickType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
-public class GuiItemClickEvent extends Event implements Cancellable
+import java.util.Optional;
+
+/**
+ * <p>
+ *     Called when:
+ *     1) A GuiItem is directly clicked.
+ *     2) An item is shift clicked into a GuiItem's slot (only if the GuiItem is AIR)
+ *     3) An item is stacked in a double click item collection
+ * </p>
+ */
+public class GuiClickEvent extends Event implements Cancellable
 {
     private static final HandlerList handlers = new HandlerList();
 
     private final Gui gui;
     private final GuiPage page;
     private final GuiItem item;
+
     private final HumanEntity human;
+
     private final ClickType clickType;
+    private final boolean outside;
 
     private boolean cancel;
 
-    public GuiItemClickEvent(@NotNull GuiItem item, @NotNull HumanEntity human, @NotNull ClickType clickType)
+    public GuiClickEvent(@NotNull HumanEntity human, @NotNull GuiPage page, @NotNull ClickType clickType,
+                         @Nullable GuiItem item, boolean outside)
     {
-        this.gui = item.getPage().getGui();
-        this.page = item.getPage();
+        this.gui = page.getGui();
+        this.page = page;
         this.item = item;
         this.human = human;
         this.clickType = clickType;
+        this.outside = outside;
     }
 
     @NotNull
@@ -43,10 +59,11 @@ public class GuiItemClickEvent extends Event implements Cancellable
         return page;
     }
 
-    @NotNull
-    public GuiItem getItem()
+    public Optional<GuiItem> getItem()
     {
-        return item;
+        if (item == null)
+            return Optional.empty();
+        return Optional.of(item);
     }
 
     @NotNull
@@ -59,6 +76,11 @@ public class GuiItemClickEvent extends Event implements Cancellable
     public ClickType getClick()
     {
         return clickType;
+    }
+
+    public boolean isOutside()
+    {
+        return outside;
     }
 
     @NotNull

@@ -4,7 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
+import self.starvern.ultimateuserinterface.api.GuiClickEvent;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
 import java.util.UUID;
@@ -19,7 +19,7 @@ public class GuiItem
     private final int slot;
     private final UUID uuid = UUID.randomUUID();
 
-    private Consumer<GuiItemClickEvent> event;
+    private Consumer<GuiClickEvent> event;
 
     public GuiItem(UUI api, GuiPage page, int slot)
     {
@@ -90,7 +90,7 @@ public class GuiItem
      * @return The instance of the item
      * @since 0.1.0
      */
-    public GuiItem executes(Consumer<GuiItemClickEvent> event)
+    public GuiItem executes(Consumer<GuiClickEvent> event)
     {
         this.event = event;
         return this;
@@ -101,7 +101,7 @@ public class GuiItem
      * @param event The event to run
      * @since 0.1.0
      */
-    public void runEvent(@NotNull GuiItemClickEvent event)
+    public void runEvent(@NotNull GuiClickEvent event)
     {
         if (this.event == null) return;
 

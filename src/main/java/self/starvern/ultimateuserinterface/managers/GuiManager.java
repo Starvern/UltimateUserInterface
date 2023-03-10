@@ -87,19 +87,9 @@ public class GuiManager
         if (inventory == null)
             return Optional.empty();
 
-        for (ItemStack item : inventory.getContents())
-        {
-            for (Gui gui : instances)
-            {
-                for (GuiPage page : gui.getPages())
-                {
-                    Optional<GuiItem> guiItemOptional = page.getItem(item);
-                    if (guiItemOptional.isPresent())
-                        return Optional.of(page);
+        if (inventory.getHolder() instanceof GuiPage)
+            return Optional.of((GuiPage) inventory.getHolder());
 
-                }
-            }
-        }
         return Optional.empty();
     }
 

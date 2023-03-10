@@ -1,9 +1,13 @@
 name: UltimateUserInterface
 version: '${version}'
-main: self.starvern.ultimateuserinterface.UUI
+main: self.starvern.ultimateuserinterface.UUIPlugin
 api-version: 1.19
-authors: [ Starvern ]
+authors:
+  - Starvern
 description: An advanced GUI management system for ease-of-use.
+softdepend:
+  - HeadDatabase
+  - PlaceholderAPI
 commands:
   interface:
     description: Open a gui

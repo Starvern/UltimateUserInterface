@@ -5,7 +5,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
+import self.starvern.ultimateuserinterface.api.GuiClickEvent;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class Gui
         for (String patternName : patterns)
         {
             List<String> pattern = this.config.getStringList(patternName);
-            this.pages.add(new GuiPage(this.api, this, pattern).loadItems());
+            this.pages.add(new GuiPage(this.api, this, pattern).loadItems().update());
         }
         return this;
     }
@@ -190,7 +190,7 @@ public class Gui
      * @return The instance of GuiPage
      * @since 0.3.4
      */
-    public Gui setGlobalEvent(Consumer<GuiItemClickEvent> globalEvent)
+    public Gui setGlobalEvent(Consumer<GuiClickEvent> globalEvent)
     {
         for (GuiPage page : this.pages)
             page.setGlobalEvent(globalEvent);
@@ -205,7 +205,7 @@ public class Gui
      */
     public void open(HumanEntity entity)
     {
-        entity.openInventory(this.getPage(0).getInventory());
+        this.getPage(0).open(entity);
     }
 
     /**
@@ -215,7 +215,7 @@ public class Gui
      */
     public void open(Player player)
     {
-        player.openInventory(this.getPage(0).getInventory());
+        this.getPage(0).open(player);
     }
 }
 
