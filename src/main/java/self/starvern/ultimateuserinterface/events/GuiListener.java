@@ -1,88 +1,89 @@
 package self.starvern.ultimateuserinterface.events;
 
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.DragType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-<<<<<<< Updated upstream
-=======
-import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
->>>>>>> Stashed changes
-import org.bukkit.inventory.ItemStack;
-
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.api.GuiCloseEvent;
+import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
-import self.starvern.ultimateuserinterface.managers.GuiManager;
-<<<<<<< Updated upstream
-=======
-import self.starvern.ultimateuserinterface.managers.InventoryManager;
-import self.starvern.ultimateuserinterface.utils.InventoryUtility;
 
 import java.util.Optional;
->>>>>>> Stashed changes
 
 public class GuiListener implements Listener
 {
-    public GuiListener()
+    private final UUIPlugin plugin;
+    private final UUI api;
+
+    public GuiListener(UUI api)
     {
-        Bukkit.getPluginManager().registerEvents(this, UUI.getSingleton());
+        this.api = api;
+        this.plugin = this.api.getPlugin();
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
     public void InventoryClickEvent(InventoryClickEvent event)
     {
-        GuiPage page = GuiManager.getGuiPage(event.getView().getTopInventory());
-        if (page == null) return;
+        Inventory inventory = event.getInventory();
 
-<<<<<<< Updated upstream
-        event.setCancelled(true);
-        event.setResult(Event.Result.DENY);
-=======
-        UUI.getSingleton().getLogger().info(String.valueOf(event.getSlot()));
+        HumanEntity human = event.getWhoClicked();
 
-        Optional<GuiPage> pageOptional = GuiManager.getGuiPage(inventory);
+        if (this.api.getItemInputManager().isListeningFor(human.getUniqueId()))
+            this.api.getItemInputManager().consumeInput(human.getUniqueId(), event.getCurrentItem());
+
+        Optional<GuiPage> pageOptional = this.plugin.getApi().getGuiManager().getGuiPage(inventory);
         if (pageOptional.isEmpty()) return;
->>>>>>> Stashed changes
 
-        ItemStack item = event.getCurrentItem();
-        if (item == null) return;
+        Optional<GuiItem> guiItemOptional = pageOptional.get().getItemAt(event.getSlot());
+        if (guiItemOptional.isEmpty()) return;
 
-        GuiItem guiItem = page.getItem(item);
-        if (guiItem == null) return;
+        GuiItemClickEvent guiClickEvent = new GuiItemClickEvent(guiItemOptional.get(), human, event.getClick());
 
-        Bukkit.getPluginManager().callEvent(new GuiItemClickEvent(guiItem, event.getWhoClicked(), event.getClick()));
+        Bukkit.getPluginManager().callEvent(guiClickEvent);
+        event.setCancelled(guiClickEvent.isCancelled());
+    }
+
+    @EventHandler
+    public void InventoryDragEvent(InventoryDragEvent event)
+    {
+        Inventory inventory = event.getInventory();
+
+        Optional<GuiPage> pageOptional = plugin.getApi().getGuiManager().getGuiPage(inventory);
+        if (pageOptional.isEmpty()) return;
+
+        if (event.getRawSlots().size() <= 1)
+        {
+            event.setCancelled(true);
+            return;
+        }
+
+        int slot = event.getRawSlots().toArray(new Integer[0])[0];
+
+        Optional<GuiItem> guiItemOptional = pageOptional.get().getItemAt(slot);
+        if (guiItemOptional.isEmpty()) return;
+
+        GuiItemClickEvent guiClickEvent = new GuiItemClickEvent(
+                guiItemOptional.get(),
+                event.getWhoClicked(),
+                (event.getType().equals(DragType.EVEN)) ? ClickType.LEFT : ClickType.RIGHT);
+
+        Bukkit.getPluginManager().callEvent(guiClickEvent);
+        event.setCancelled(guiClickEvent.isCancelled());
     }
 
     @EventHandler
     public void GuiItemClickEvent(GuiItemClickEvent event)
     {
-<<<<<<< Updated upstream
-=======
-        event.getPage().runClickEvent(event);
->>>>>>> Stashed changes
+        Bukkit.getLogger().info("Gui Item Click");
+        event.getPage().runEvent(event);
         event.getItem().runEvent(event);
-    }
-
-    @EventHandler
-    public void InventoryCloseEvent(InventoryCloseEvent event)
-    {
-        Inventory inventory = event.getInventory();
-
-        Optional<GuiPage> pageOptional = GuiManager.getGuiPage(inventory);
-        if (pageOptional.isEmpty()) return;
-
-        Bukkit.getPluginManager().callEvent(new GuiCloseEvent(pageOptional.get(), event.getPlayer()));
-    }
-
-    @EventHandler
-    public void GuiCloseEvent(GuiCloseEvent event)
-    {
-        InventoryManager.restoreInventory(event.getWhoClicked().getUniqueId());
-        event.getPage().runCloseEvent(event);
     }
 }

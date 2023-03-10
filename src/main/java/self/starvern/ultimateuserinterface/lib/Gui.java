@@ -1,18 +1,21 @@
 package self.starvern.ultimateuserinterface.lib;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import self.starvern.ultimateuserinterface.managers.FileManager;
+import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Gui
 {
+    private final UUI api;
+
     private final File file;
     private final FileConfiguration config;
     private final String id;
@@ -20,30 +23,40 @@ public class Gui
     private final List<String> patterns;
     private final List<GuiPage> pages;
 
-    public Gui(File file)
+    public Gui(UUI api, File file)
     {
+        this.api = api;
         this.file = file;
-        this.config = FileManager.getConfig(file);
+        this.config = YamlConfiguration.loadConfiguration(file);
         this.id = file.getName().replace(".yml", "");
         this.title = this.config.getString("title", "Gui");
         this.patterns = this.config.getStringList("patterns");
         this.pages = new ArrayList<>();
+    }
 
-        loadPages();
+    /**
+     * @return A clean duplicated version of this Gui.
+     * @since 0.2.3
+     */
+    public Gui duplicate()
+    {
+        return new Gui(this.api, this.file).loadPages();
     }
 
     /**
      * Builds List<GuiPage> from the configuration.
+     * @return Instance of Gui
      * @since 0.1.0
      */
-    public void loadPages()
+    public Gui loadPages()
     {
         this.pages.clear();
         for (String patternName : patterns)
         {
             List<String> pattern = this.config.getStringList(patternName);
-            this.pages.add(new GuiPage(this, pattern).loadItems());
+            this.pages.add(new GuiPage(this.api, this, pattern).loadItems());
         }
+        return this;
     }
 
     /**
@@ -131,6 +144,18 @@ public class Gui
     }
 
     /**
+     * @return Every item in all the pages of the GUI.
+     * @since 0.3.4
+     */
+    public List<GuiItem> getAllItems()
+    {
+        List<GuiItem> items = new ArrayList<>();
+        for (GuiPage page : this.pages)
+            items.addAll(page.getItems());
+        return items;
+    }
+
+    /**
      * @param id The character associated with the item.
      * @return Every item with this character in all the pages of the GUI.
      * @since 0.1.7
@@ -153,8 +178,24 @@ public class Gui
         GuiPage firstPage = pages.get(0);
         int pageItemSize = firstPage.getItems(character).size();
 
+        if (pageItemSize == 0 || pageItemSize <= amount) return;
+
         for (int index = 0; index <= (amount - pageItemSize) / pageItemSize; index++)
             this.pages.add(firstPage.duplicate().loadItems());
+    }
+
+    /**
+     * Set the global event for every page in the GUI.
+     * @param globalEvent The event to run
+     * @return The instance of GuiPage
+     * @since 0.3.4
+     */
+    public Gui setGlobalEvent(Consumer<GuiItemClickEvent> globalEvent)
+    {
+        for (GuiPage page : this.pages)
+            page.setGlobalEvent(globalEvent);
+
+        return this;
     }
 
     /**
@@ -164,7 +205,7 @@ public class Gui
      */
     public void open(HumanEntity entity)
     {
-        entity.openInventory(this.getPage(0).getInventory(entity));
+        entity.openInventory(this.getPage(0).getInventory());
     }
 
     /**
@@ -174,7 +215,7 @@ public class Gui
      */
     public void open(Player player)
     {
-        player.openInventory(this.getPage(0).getInventory(player));
+        player.openInventory(this.getPage(0).getInventory());
     }
 }
 
