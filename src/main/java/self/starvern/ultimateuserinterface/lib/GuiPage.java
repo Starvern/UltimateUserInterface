@@ -5,14 +5,14 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.UUIPlugin;
-import self.starvern.ultimateuserinterface.api.GuiItemClickEvent;
+import self.starvern.ultimateuserinterface.api.GuiClickEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class GuiPage
+public class GuiPage implements InventoryHolder
 {
     private final UUI api;
 
@@ -29,7 +29,7 @@ public class GuiPage
     private final List<String> pattern;
     private final List<GuiItem> items;
     private Inventory inventory;
-    private Consumer<GuiItemClickEvent> globalEvent;
+    private Consumer<GuiClickEvent> globalEvent;
 
     public GuiPage(UUI api, Gui gui, List<String> pattern)
     {
@@ -38,7 +38,7 @@ public class GuiPage
         this.title = this.gui.getTitle();
         this.pattern = pattern;
         this.items = new ArrayList<>();
-        this.inventory = Bukkit.createInventory(null, Math.min(9 * this.pattern.size(), 54), this.title);
+        this.inventory = Bukkit.createInventory(this, Math.min(9 * this.pattern.size(), 54), this.title);
     }
 
     /**
@@ -56,7 +56,7 @@ public class GuiPage
      * @return The instance of GuiPage
      * @since 0.2.3
      */
-    public GuiPage setGlobalEvent(Consumer<GuiItemClickEvent> globalEvent)
+    public GuiPage setGlobalEvent(Consumer<GuiClickEvent> globalEvent)
     {
         this.globalEvent = globalEvent;
         return this;
@@ -67,7 +67,7 @@ public class GuiPage
      * @param event The event to run.
      * @return The instance of GuiPage.
      */
-    public GuiPage runEvent(@NotNull GuiItemClickEvent event)
+    public GuiPage runEvent(@NotNull GuiClickEvent event)
     {
         if (this.globalEvent == null) return this;
         this.globalEvent.accept(event);
@@ -81,7 +81,8 @@ public class GuiPage
      */
     public GuiPage update()
     {
-        this.inventory = Bukkit.createInventory(null, 9 * this.pattern.size(), this.title);
+        this.inventory = Bukkit.createInventory(this, 9 * this.pattern.size(), this.title);
+        this.updateInventory();
         return this;
     }
 
@@ -147,13 +148,35 @@ public class GuiPage
      * @return The inventory constructed from the pattern.
      * @since 0.1.0
      */
-    public Inventory getInventory()
+    @Override
+    public @NotNull Inventory getInventory()
+    {
+        return this.inventory;
+    }
+
+    /**
+     * Places all the GuiItems in their designated slots, overriding any changes.
+     * @return The inventory.
+     * @since 0.4.0
+     */
+    public Inventory updateInventory()
+    {
+        return this.updateInventory(new ArrayList<>());
+    }
+
+    /**
+     * Places all the GuiItems in their designated slots, overriding any changes.
+     * @param slots Don't update these items.
+     * @return The inventory.
+     * @since 0.4.0
+     */
+    public Inventory updateInventory(List<Integer> slots)
     {
         for (GuiItem item : this.items)
         {
+            if (slots.contains(item.getSlot())) continue;
             this.inventory.setItem(item.getSlot(), item.getItem().build());
         }
-
         return this.inventory;
     }
 
@@ -270,7 +293,7 @@ public class GuiPage
      */
     public void open(HumanEntity entity)
     {
-        entity.openInventory(this.getInventory());
+        entity.openInventory(this.updateInventory());
     }
 
     /**
@@ -280,7 +303,7 @@ public class GuiPage
      */
     public void open(Player player)
     {
-        player.openInventory(this.getInventory());
+        player.openInventory(this.updateInventory());
     }
 
     /**
@@ -297,5 +320,26 @@ public class GuiPage
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * @param slot The slot to check.
+     * @return True, if the slot has had items removed or added to it.
+     * @since 0.4.0
+     */
+    public boolean isChanged(int slot)
+    {
+        ItemStack item = this.inventory.getItem(slot);
+        Optional<GuiItem> guiItemOptional = getItemAt(slot);
+
+        if (guiItemOptional.isEmpty())
+            return false;
+
+        GuiItem guiItem = guiItemOptional.get();
+
+        if (guiItem.getItem().getMaterial().isAir() && (item == null || item.getType().isAir()))
+            return false;
+
+        return !guiItem.getItem().build().equals(item);
     }
 }

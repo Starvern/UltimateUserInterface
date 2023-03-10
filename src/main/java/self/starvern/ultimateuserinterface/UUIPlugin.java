@@ -1,10 +1,18 @@
 package self.starvern.ultimateuserinterface;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import self.starvern.ultimateuserinterface.api.GuiTickEvent;
 import self.starvern.ultimateuserinterface.commands.InterfaceCommand;
 import self.starvern.ultimateuserinterface.events.GuiListener;
+import self.starvern.ultimateuserinterface.hooks.HeadDatabaseHook;
+import self.starvern.ultimateuserinterface.lib.Gui;
+import self.starvern.ultimateuserinterface.lib.GuiPage;
 
 import java.io.File;
+import java.util.Optional;
 
 public class UUIPlugin extends JavaPlugin
 {
@@ -19,6 +27,8 @@ public class UUIPlugin extends JavaPlugin
 
         new InterfaceCommand(this);
         new GuiListener(this.api);
+        if (Bukkit.getPluginManager().getPlugin("HeadDatabase") != null)
+            new HeadDatabaseHook(this.api);
     }
 
     @Override

@@ -1,16 +1,25 @@
 package self.starvern.ultimateuserinterface.utils;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
+import self.starvern.ultimateuserinterface.hooks.HeadDatabaseHook;
+import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.managers.ChatManager;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
 
@@ -23,6 +32,10 @@ public class ItemUtility
     private String value;
     private final List<ItemFlag> flags = new ArrayList<>();
     private final Map<Enchantment, Integer> enchantments = new HashMap<>();
+    private int amount = 1;
+    private String texture;
+    private String player;
+    private String hdbId;
 
     public ItemUtility(Material material, boolean addFlags)
     {
@@ -48,9 +61,7 @@ public class ItemUtility
         this.lore = itemMeta.getLore();
         this.flags.addAll(itemMeta.getItemFlags());
         for (Enchantment enchantment : itemStack.getEnchantments().keySet())
-        {
             this.enchantments.put(enchantment, itemStack.getEnchantmentLevel(enchantment));
-        }
     }
 
     public ItemUtility(FileConfiguration config, String path)
@@ -73,6 +84,10 @@ public class ItemUtility
         this.material = material;
         this.displayName = name;
         this.lore = lore;
+
+        this.texture = config.getString(path + ".texture", null);
+        this.hdbId = config.getString(path + ".hdb", null);
+        this.player = config.getString(path + ".player", null);
 
         ConfigurationSection enchantSection  = config.getConfigurationSection(path + ".enchantments");
         if (enchantSection != null)
@@ -101,6 +116,14 @@ public class ItemUtility
     }
 
     /**
+     * @return A copy of this ItemUtility.
+     */
+    public ItemUtility duplicate()
+    {
+        return new ItemUtility(build());
+    }
+
+    /**
      * @param displayName The name of the enchantment.
      * @return The enchantment based on the name provided.
      * @since 0.3.7
@@ -113,22 +136,13 @@ public class ItemUtility
     }
 
     /**
-     * @return The ItemUtility as an ItemStack.
+     * @return The ItemUtility built into an ItemStack.
      * @since 0.1.0
      */
     public ItemStack build()
     {
-        return build(1);
-    }
+        ItemStack item = parseHead(new ItemStack(this.material, amount));
 
-    /**
-     * @param amount The amount of the ItemStack.
-     * @return The built item.
-     * @since 0.1.0
-     */
-    public ItemStack build(int amount)
-    {
-        ItemStack item = new ItemStack(this.material, amount);
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta == null) return item;
 
@@ -144,6 +158,52 @@ public class ItemUtility
             itemMeta.addItemFlags(this.flags.toArray(new ItemFlag[0]));
 
         item.setItemMeta(itemMeta);
+        return item;
+    }
+
+    private ItemStack parseHead(ItemStack item)
+    {
+        if (this.material.equals(Material.PLAYER_HEAD))
+        {
+            SkullMeta itemMeta = ((SkullMeta) item.getItemMeta());
+            if (itemMeta == null) return item;
+
+            if (this.hdbId != null)
+            {
+                Bukkit.getLogger().info("Into HDB");
+                if (HeadDatabaseHook.getApi().isPresent())
+                    item = HeadDatabaseHook.getApi().get().getItemHead(this.hdbId);
+                return item;
+            }
+
+            if (this.texture != null)
+            {
+                Bukkit.getLogger().info("Into Texture");
+
+                GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+                profile.getProperties().put("textures", new Property("textures", this.texture));
+
+                try
+                {
+                    Field profileField = itemMeta.getClass().getDeclaredField("profile");
+                    profileField.setAccessible(true);
+                    profileField.set(itemMeta, profile);
+                }
+                catch (NoSuchFieldException | IllegalAccessException exception){
+                    exception.printStackTrace();
+                }
+
+                item.setItemMeta(itemMeta);
+
+                return item;
+            }
+
+            if (this.player != null)
+                itemMeta.setOwningPlayer(PlayerUtility.getPlayer(this.player).orElse(null));
+
+
+            item.setItemMeta(itemMeta);
+        }
         return item;
     }
 
@@ -173,6 +233,84 @@ public class ItemUtility
                 .addEnchantments(this.enchantments)
                 .addFlag(this.flags.toArray(new ItemFlag[0]));
 
+        return this;
+    }
+
+    /**
+     * @return How many items are in the stack.
+     * @since 0.4.0
+     */
+    public int getAmount()
+    {
+        return amount;
+    }
+
+    /**
+     * @param amount The new amount in the stack.
+     * @return The instance of ItemUtility.
+     * @since 0.4.0
+     */
+    public ItemUtility setAmount(int amount)
+    {
+        this.amount = amount;
+        return this;
+    }
+
+    /**
+     * @param amount The amount to add onto the stack.
+     * @return The instance of ItemUtility.
+     * @since 0.4.0
+     */
+    public ItemUtility addAmount(int amount)
+    {
+        this.amount += amount;
+        return this;
+    }
+
+    /**
+     * @param amount The amount to subtract from the stack.
+     * @return The instance of ItemUtility.
+     * @since 0.4.0
+     */
+    public ItemUtility removeAmount(int amount)
+    {
+        this.amount -= amount;
+        return this;
+    }
+
+    /**
+     * Sets the base64 texture for heads.
+     * @param base64 The texture to use.
+     * @return The instance of ItemUtility.
+     * @since 0.3.7
+     */
+    public ItemUtility addTexture(String base64)
+    {
+        this.texture = base64;
+        return this;
+    }
+
+    /**
+     * Adds a player's texture to a head.
+     * @param player The player to get heads.
+     * @return The instance of ItemUtility.
+     * @since 0.3.7
+     */
+    public ItemUtility addPlayer(String player)
+    {
+        this.player = player;
+        return this;
+    }
+
+    /**
+     * Adds an HDB texture to the item.
+     * @param id The HeadDatabase id to apply.
+     * @return The instance of ItemUtility.
+     * @since 0.3.7
+     */
+    public ItemUtility addHdbTexture(String id)
+    {
+        this.hdbId = id;
         return this;
     }
 
@@ -412,4 +550,24 @@ public class ItemUtility
         return this;
     }
 
+    /**
+     * @return The instance of ItemUtility, with any PAPI placeholders parsed.
+     */
+    public ItemUtility parse(Player player)
+    {
+        if (this.displayName != null)
+            this.displayName = PlaceholderAPIHook.parse(player, this.displayName);
+        if (this.lore != null && !this.lore.isEmpty())
+        {
+            this.lore = PlaceholderAPIHook.parse(player, this.lore);
+        }
+        if (this.texture != null)
+            this.texture = PlaceholderAPIHook.parse(player, this.texture);
+        if (this.player != null)
+            this.player = PlaceholderAPIHook.parse(player, this.player);
+        if (this.hdbId != null)
+            this.hdbId = PlaceholderAPIHook.parse(player, this.hdbId);
+
+        return this;
+    }
 }
