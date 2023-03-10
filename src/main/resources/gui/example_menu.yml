@@ -1,11 +1,11 @@
 title: "Example Menu"
 
-pattern1:
+page_one:
   - '#########'
   - '#0001000#'
   - '#########'
 
-pattern2:
+page_two:
   - '#########'
   - '#0002000#'
   - '#0002000#'
@@ -13,27 +13,34 @@ pattern2:
   - '#########'
 
 patterns:
-  - 'pattern1'
-  - 'pattern2'
+  - 'page_one'
+  - 'page_two'
 
 '1':
-  name: '{#f00}Ban Player'
-  material: BARRIER
-  enchanted: true
+  name: '{#fa0}Master Sword'
+  material: DIAMOND_SWORD
+  enchantments:
+    sharpness: 10
+  flags:
+    - HIDE_ENCHANTS
   lore:
-    - '&7Remove a player from'
-    - '&7the server {#f00}permanently'
+    - '&7An immensely powerful sword.'
+    - '{#fa0>}Gradient Support{#0af<}'
+  actions:
+    - '[close]'
+    - '[phoenixcrates::nextPage]'
 
 '2':
-  name: '{#f00}Mute Player'
-  material: BARRIER
-  enchanted: true
+  name: '{#fa0}Grand Master Sword'
+  material: NETHERITE_SWORD
+  enchantments:
+    sharpness: 100
+  flags:
+    - HIDE_ENCHANTS
   lore:
-    - '&7Stop a player from talking'
-    - '&7on the server {#f00}permanently'
+    - '&7An even more immensely powerful sword.'
+    - '{#fa0>}Triple Gra{#fff<>}dient Support{#0af<}'
 
 '#':
   name: ' '
   material: BLACK_STAINED_GLASS_PANE
-  enchanted: false
-  lore: []

@@ -82,6 +82,7 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiItemClickEvent(GuiItemClickEvent event)
     {
+        Bukkit.getLogger().info("Gui Item Click");
         event.getPage().runEvent(event);
         event.getItem().runEvent(event);
     }

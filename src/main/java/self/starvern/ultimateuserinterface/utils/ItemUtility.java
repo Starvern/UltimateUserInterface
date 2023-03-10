@@ -2,6 +2,7 @@ package self.starvern.ultimateuserinterface.utils;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -10,9 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import self.starvern.ultimateuserinterface.managers.ChatManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 public class ItemUtility
@@ -20,10 +19,17 @@ public class ItemUtility
     private Material material;
     private String displayName;
     private List<String> lore;
-    private boolean enchanted = false;
     private NamespacedKey key;
     private String value;
     private final List<ItemFlag> flags = new ArrayList<>();
+    private final Map<Enchantment, Integer> enchantments = new HashMap<>();
+
+    public ItemUtility(Material material, boolean addFlags)
+    {
+        this.material = material;
+        if (addFlags)
+            this.flags.addAll(List.of(ItemFlag.HIDE_POTION_EFFECTS, ItemFlag.HIDE_ATTRIBUTES));
+    }
 
     public ItemUtility(Material material)
     {
@@ -40,15 +46,17 @@ public class ItemUtility
 
         this.displayName = itemMeta.getDisplayName();
         this.lore = itemMeta.getLore();
-        this.enchanted = itemMeta.hasEnchants();
         this.flags.addAll(itemMeta.getItemFlags());
+        for (Enchantment enchantment : itemStack.getEnchantments().keySet())
+        {
+            this.enchantments.put(enchantment, itemStack.getEnchantmentLevel(enchantment));
+        }
     }
 
     public ItemUtility(FileConfiguration config, String path)
     {
         String name = config.getString(path + ".name", "UNKNOWN");
         String materialName = config.getString(path + ".material", "AIR");
-        boolean enchanted = config.getBoolean(path + ".enchanted", false);
         List<String> lore = config.getStringList(path + ".lore");
 
         Material material;
@@ -65,9 +73,49 @@ public class ItemUtility
         this.material = material;
         this.displayName = name;
         this.lore = lore;
-        this.enchanted = enchanted;
+
+        ConfigurationSection enchantSection  = config.getConfigurationSection(path + ".enchantments");
+        if (enchantSection != null)
+        {
+            for (String enchantName : enchantSection.getKeys(false))
+            {
+                Optional<Enchantment> enchantmentOptional = getEnchant(enchantName);
+                if (enchantmentOptional.isEmpty()) continue;
+                this.enchantments.put(enchantmentOptional.get(), enchantSection.getInt(enchantName));
+            }
+        }
+
+        for (String flagName : config.getStringList(path + ".flags"))
+        {
+            ItemFlag flag;
+            try
+            {
+                flag = ItemFlag.valueOf(flagName.toUpperCase(Locale.ROOT));
+            }
+            catch (IllegalArgumentException exception)
+            {
+                continue;
+            }
+            this.flags.add(flag);
+        }
     }
 
+    /**
+     * @param displayName The name of the enchantment.
+     * @return The enchantment based on the name provided.
+     * @since 0.3.7
+     */
+    private Optional<Enchantment> getEnchant(String displayName)
+    {
+        return Arrays.stream(Enchantment.values())
+                .filter(enchantment -> enchantment.getKey().getKey().equalsIgnoreCase(displayName))
+                .findFirst();
+    }
+
+    /**
+     * @return The ItemUtility as an ItemStack.
+     * @since 0.1.0
+     */
     public ItemStack build()
     {
         return build(1);
@@ -88,11 +136,8 @@ public class ItemUtility
             itemMeta.setDisplayName(ChatManager.colorize(displayName));
         if (this.lore != null)
             itemMeta.setLore(ChatManager.colorize(lore));
-        if (this.enchanted)
-        {
-            itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, true);
-            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        }
+        for (Enchantment enchantment : this.enchantments.keySet())
+            itemMeta.addEnchant(enchantment, this.enchantments.get(enchantment), true);
         if (this.key != null)
             itemMeta.getPersistentDataContainer().set(this.key, PersistentDataType.STRING, this.value);
         if (!this.flags.isEmpty())
@@ -124,7 +169,9 @@ public class ItemUtility
         this.setMaterial(item.getMaterial())
                 .addDisplayName(item.getDisplayName())
                 .addLore(item.getLore())
-                .addKey(item.getKey(), item.getKeyValue());
+                .addKey(item.getKey(), item.getKeyValue())
+                .addEnchantments(this.enchantments)
+                .addFlag(this.flags.toArray(new ItemFlag[0]));
 
         return this;
     }
@@ -201,26 +248,78 @@ public class ItemUtility
     }
 
     /**
-     * Makes the item glow with a basic enchantment.
+     * @param enchantments The enchantments to add, at level 1.
      * @return The instance of ItemUtility.
-     * @since 0.1.0
+     * @since 0.3.7
      */
-    public ItemUtility makeEnchanted()
+    public ItemUtility addEnchantment(Enchantment ... enchantments)
     {
-        this.enchanted = true;
+        for (Enchantment enchantment : enchantments)
+            this.addEnchantment(enchantment, 1);
         return this;
     }
 
     /**
-     * Makes the item enchanted based on the value.
-     * @param value Whether to make it enchanted.
-     * @return The instance of ItemUtiltiy.
-     * @since 0.1.0
+     * @param enchantment The enchantment to add, at level 1.
+     * @return The instance of ItemUtility.
+     * @since 0.3.7
      */
-    public ItemUtility makeEnchanted(boolean value)
+    public ItemUtility addEnchantment(Enchantment enchantment)
     {
-        this.enchanted = value;
+        return this.addEnchantment(enchantment, 1);
+    }
+
+    /**
+     * @param enchantment The enchantment to add.
+     * @param level The level of the enchantment.
+     * @return The instance of ItemUtility
+     * @since 0.3.7
+     */
+    public ItemUtility addEnchantment(Enchantment enchantment, int level)
+    {
+        this.enchantments.put(enchantment, level);
         return this;
+    }
+
+    /**
+     *
+     * @param enchantments The enchantments to add.
+     * @return The instance of ItemUtility.
+     * @since 0.3.7
+     */
+    public ItemUtility addEnchantments(Map<Enchantment, Integer> enchantments)
+    {
+        this.enchantments.putAll(enchantments);
+        return this;
+    }
+
+    /**
+     * @param enchantment The enchantment to remove.
+     * @return The instance of ItemUtility
+     * @since 0.3.7
+     */
+    public ItemUtility removeEnchantment(Enchantment enchantment)
+    {
+        this.enchantments.remove(enchantment);
+        return this;
+    }
+
+    /**
+     * Removes all enchantments.
+     * @return The instance of ItemUtility.
+     */
+    public ItemUtility clearEnchantments()
+    {
+        this.enchantments.clear();
+        return this;
+    }
+
+    /**
+     * @return The items enchantments and levels.
+     */
+    public Map<Enchantment, Integer> getEnchantments()
+    {
+        return enchantments;
     }
 
     /**
@@ -229,7 +328,7 @@ public class ItemUtility
      */
     public boolean isEnchanted()
     {
-        return this.enchanted;
+        return this.enchantments.size() != 0;
     }
 
     /**
