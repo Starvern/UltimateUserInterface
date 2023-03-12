@@ -10,6 +10,7 @@ import self.starvern.ultimateuserinterface.events.GuiListener;
 import self.starvern.ultimateuserinterface.hooks.HeadDatabaseHook;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
+import self.starvern.ultimateuserinterface.macros.impl.*;
 
 import java.io.File;
 import java.util.Optional;
@@ -29,6 +30,14 @@ public class UUIPlugin extends JavaPlugin
         new GuiListener(this.api);
         if (Bukkit.getPluginManager().getPlugin("HeadDatabase") != null)
             new HeadDatabaseHook(this.api);
+
+        new CloseMacro(this.api, this).register();
+        new CommandMacro(this.api, this).register();
+        new MessageMacro(this.api, this).register();
+        new PlayerCommandMacro(this.api, this).register();
+        new PapiMacro(this.api, this).register();
+        new NextPageMacro(this.api, this).register();
+        new LastPageMacro(this.api, this).register();
     }
 
     @Override

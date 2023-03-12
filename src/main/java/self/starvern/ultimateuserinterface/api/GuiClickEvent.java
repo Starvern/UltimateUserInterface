@@ -21,16 +21,11 @@ import java.util.Optional;
  *     3) An item is stacked in a double click item collection
  * </p>
  */
-public class GuiClickEvent extends Event implements Cancellable
+public class GuiClickEvent extends GuiEvent implements Cancellable
 {
     private static final HandlerList handlers = new HandlerList();
 
-    private final Gui gui;
-    private final GuiPage page;
     private final GuiItem item;
-
-    private final HumanEntity human;
-
     private final ClickType clickType;
     private final boolean outside;
 
@@ -39,24 +34,10 @@ public class GuiClickEvent extends Event implements Cancellable
     public GuiClickEvent(@NotNull HumanEntity human, @NotNull GuiPage page, @NotNull ClickType clickType,
                          @Nullable GuiItem item, boolean outside)
     {
-        this.gui = page.getGui();
-        this.page = page;
+        super(human, page);
         this.item = item;
-        this.human = human;
         this.clickType = clickType;
         this.outside = outside;
-    }
-
-    @NotNull
-    public Gui getGui()
-    {
-        return gui;
-    }
-
-    @NotNull
-    public GuiPage getPage()
-    {
-        return page;
     }
 
     public Optional<GuiItem> getItem()
@@ -64,12 +45,6 @@ public class GuiClickEvent extends Event implements Cancellable
         if (item == null)
             return Optional.empty();
         return Optional.of(item);
-    }
-
-    @NotNull
-    public HumanEntity getWhoClicked()
-    {
-        return human;
     }
 
     @NotNull

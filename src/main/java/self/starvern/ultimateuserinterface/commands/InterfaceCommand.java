@@ -95,7 +95,7 @@ public class InterfaceCommand implements CommandExecutor
             }
         }
 
-        target.openInventory(guiOptional.get().getPage(page).getInventory());
+        guiOptional.get().getPage(page).open(target);
 
         return true;
     }

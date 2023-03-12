@@ -1,42 +1,65 @@
 package self.starvern.ultimateuserinterface.lib;
 
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.jetbrains.annotations.NotNull;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.api.GuiClickEvent;
+import self.starvern.ultimateuserinterface.api.GuiEvent;
+import self.starvern.ultimateuserinterface.macros.ActionType;
+import self.starvern.ultimateuserinterface.macros.GuiAction;
+import self.starvern.ultimateuserinterface.macros.Macro;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
-import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.*;
 
-public class GuiItem
+/**
+ * <p>
+ *     This class represents a reference to an ItemStack,
+ *     with events strapped to it.
+ * </p>
+ */
+public class GuiItem implements GuiBased
 {
+    private final UUI api;
     private final GuiPage page;
     private final String id;
-    private final ItemUtility item;
-    private final NamespacedKey key;
     private final int slot;
     private final UUID uuid = UUID.randomUUID();
+    private final ConfigurationSection section;
 
-    private Consumer<GuiClickEvent> event;
+    private final List<GuiAction<GuiItem>> actions;
 
-    public GuiItem(UUI api, GuiPage page, int slot)
-    {
-        this.page = page;
-        this.id = "";
-        this.item = new ItemUtility(Material.AIR);
-        this.slot = slot;
-        this.key = new NamespacedKey(api.getPlugin(), "uui-item-id");
-    }
+    private ItemStack item;
 
     public GuiItem(UUI api, GuiPage page, String id, int slot)
     {
+        this.api = api;
         this.page = page;
         this.id = id;
-        this.item = new ItemUtility(page.getGui().getConfig(), this.id);
         this.slot = slot;
-        this.key = new NamespacedKey(api.getPlugin(), "uui-item-id");
+        this.section = this.page.getGui().getConfig().getConfigurationSection(this.id);
+        this.item = ItemUtility.build(section);
+        this.actions = new ArrayList<>();
+
+        if (this.section == null) return;
+
+        for (ActionType type : ActionType.values())
+        {
+            for (String action : this.section.getStringList("actions." + type))
+            {
+                Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
+                if (optionalMacro.isEmpty()) continue;
+                actions.add(new GuiAction<>(this, optionalMacro.get(), type, action));
+            }
+        }
+
+        if (!this.actions.isEmpty())
+            ItemUtility.addLocalizedName(this.api, this.item, uuid.toString());
+    }
+
+    @Override
+    public Gui getGui()
+    {
+        return this.page.getGui();
     }
 
     public int getSlot()
@@ -44,68 +67,80 @@ public class GuiItem
         return this.slot;
     }
 
-    /**
-     * @return The UUID of the item.
-     * @since 0.1.0
-     */
     public UUID getUniqueId()
     {
         return this.uuid;
     }
 
-    /**
-     * @return The GUI page this item appears in.
-     * @since 0.1.0
-     */
     public GuiPage getPage()
     {
         return this.page;
     }
 
-    /**
-     * @return The character associated with the item.
-     * @since 0.1.0
-     */
     public String getId()
     {
         return this.id;
     }
 
-    /**
-     * <p>
-     *     Returns an instance of ItemUtility, which manages how the item
-     *     appears. Use this method as an entry-point for item customization.
-     * </p>
-     * @return The item's ItemUtility
-     * @since 0.1.0
-     */
-    public ItemUtility getItem()
+    public GuiItem reloadItem()
     {
-        return this.item.addKey(this.key, this.uuid.toString());
-    }
-
-    /**
-     * Attaches an event to the item
-     * @param event The event to run
-     * @return The instance of the item
-     * @since 0.1.0
-     */
-    public GuiItem executes(Consumer<GuiClickEvent> event)
-    {
-        this.event = event;
+        this.item = ItemUtility.build(section);
+        if (!this.actions.isEmpty())
+            ItemUtility.addLocalizedName(this.api, this.item, uuid.toString());
         return this;
     }
 
-    /**
-     * Executes the event
-     * @param event The event to run
-     * @since 0.1.0
-     */
-    public void runEvent(@NotNull GuiClickEvent event)
+    public ItemStack getItem()
     {
-        if (this.event == null) return;
+        return this.item.clone();
+    }
 
-        this.event.accept(event);
+    public GuiItem setItem(ItemStack itemStack)
+    {
+        if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasLocalizedName())
+            ItemUtility.removedLocalizedName(this.api, this.item);
+        this.item = itemStack;
+
+        if (!this.actions.isEmpty())
+            ItemUtility.addLocalizedName(this.api, this.item, uuid.toString());
+
+        this.page.setItem(this);
+        return this;
+    }
+
+    public List<GuiAction<GuiItem>> getActions()
+    {
+        return actions;
+    }
+
+    public GuiItem removeAction(GuiAction<GuiItem> action)
+    {
+        this.actions.remove(action);
+        return this;
+    }
+
+    public boolean isItem(ItemStack item)
+    {
+        String localizedName = ItemUtility.getLocalizedName(this.api, item);
+        if (localizedName == null) return false;
+        return localizedName.equalsIgnoreCase(this.uuid.toString());
+    }
+
+    /**
+     * Executes all macros for this item.
+     * @param event The event to use.
+     * @return The instance of GuiItem.
+     * @since 0.4.0
+     */
+    public GuiItem execute(GuiEvent event)
+    {
+        List<GuiAction<GuiItem>> actions = new ArrayList<>(this.actions);
+        for (GuiAction<GuiItem> action : actions)
+        {
+            action.execute(event);
+        }
+
+        return this;
     }
 }
 

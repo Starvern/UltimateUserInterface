@@ -1,5 +1,8 @@
 title: "Example Menu"
 
+# How often tick macros will fire.
+tick: 10
+
 page_one:
   - '#########'
   - '#0001000#'
@@ -27,8 +30,12 @@ patterns:
     - '&7An immensely powerful sword.'
     - '{#fa0>}Gradient Support{#0af<}'
   actions:
-    - '[close]'
-    - '[phoenixcrates::nextPage]'
+    click:
+      - '[message] You clicked on the master sword!'
+    open:
+      - '[message] You opened the gui!'
+    close:
+      - '[message] You closed the gui!'
 
 '2':
   name: '{#fa0}Grand Master Sword'
