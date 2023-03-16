@@ -35,9 +35,8 @@ public abstract class Macro
     }
 
     /**
-     * @param event The event to run this macro for.
-     * @param item The item to run the event for.
-     * @param args The args provided in the macro declaration.
+     * @param event The event to run.
+     * @param action The action to run the event for.
      * @since 0.4.0
      */
     public abstract void run(GuiEvent event, GuiAction<? extends GuiBased> action);

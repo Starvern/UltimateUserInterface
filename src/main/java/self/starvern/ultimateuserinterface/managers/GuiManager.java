@@ -37,21 +37,29 @@ public class GuiManager
         guis.clear();
 
         File folder = new File(this.api.getPlugin().getDataFolder(), "gui");
+        loadFiles(folder.listFiles());
+    }
 
-        File[] files = folder.listFiles();
-        if (files == null)
-        {
-            return;
-        }
+    /**
+     * Loads all files in the folder as GUIs.
+     * @param files The files to load.
+     * @since 0.4.0
+     */
+    private void loadFiles(File[] files)
+    {
+        if (files == null) return;
 
         for (File file : files)
         {
+            if (file.isDirectory())
+                this.loadFiles(file.listFiles());
             guis.add(new Gui(this.api, file).loadPages());
         }
     }
 
     /**
      * @return All duplicates of any Guis.
+     * @since 0.4.0
      */
     public Set<Gui> getInstances()
     {

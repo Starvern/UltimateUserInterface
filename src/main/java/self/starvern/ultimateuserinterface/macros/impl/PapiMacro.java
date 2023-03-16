@@ -4,7 +4,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.api.GuiClickEvent;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
@@ -12,8 +11,6 @@ import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
-
-import java.util.Optional;
 
 /**
  * <p>
@@ -38,23 +35,8 @@ public class PapiMacro extends Macro
         GuiBased holder = action.getHolder();
         Player player = (Player) event.getHuman();
 
-        // Fix to only parse if item in slot == guiItem
-
         if (holder instanceof GuiItem item)
-        {
-            ItemStack itemStack = event.getPage().getInventory().getItem(item.getSlot());
-            if (itemStack == null || itemStack.getType().isAir())
-                return;
-
-            if (!item.isItem(itemStack) || event instanceof GuiClickEvent)
-            {
-                ItemUtility.removedLocalizedName(this.api, item.getItem());
-                item.removeAction((GuiAction<GuiItem>) action);
-                return;
-            }
-
             this.parseItem(item, player);
-        }
 
         if (holder instanceof GuiPage page)
         {
@@ -65,7 +47,11 @@ public class PapiMacro extends Macro
 
     private void parseItem(GuiItem item, Player player)
     {
-        item.reloadItem();
-        item.setItem(ItemUtility.parsePlaceholders(player, item.getItem()));
+        ItemStack itemStack = item.getPage().getInventory().getItem(item.getSlot());
+
+        if (itemStack == null || itemStack.getType().isAir())
+            return;
+
+        item.setItem(ItemUtility.parsePlaceholders(this.api, player, itemStack));
     }
 }

@@ -36,12 +36,31 @@ public class GuiItem implements GuiBased
         this.page = page;
         this.id = id;
         this.slot = slot;
-        this.section = this.page.getGui().getConfig().getConfigurationSection(this.id);
-        this.item = ItemUtility.build(section);
+        ConfigurationSection section = this.page.getGui().getConfig().getConfigurationSection(this.id);
+        if (section== null) section = this.page.getConfig().createSection(this.id);
+        this.section = section;
+        this.item = ItemUtility.build(this.api, this.getGui().getFile(), section);
         this.actions = new ArrayList<>();
+    }
 
-        if (this.section == null) return;
+    /**
+     * @return The Gui this item appears in.
+     * @since 0.4.0
+     */
+    @Override
+    public Gui getGui()
+    {
+        return this.page.getGui();
+    }
 
+    /**
+     * Loads all macros for this item.
+     * @return The instance of GuiItem.
+     * @since 0.4.0
+     */
+    public GuiItem loadActions()
+    {
+        this.actions.clear();
         for (ActionType type : ActionType.values())
         {
             for (String action : this.section.getStringList("actions." + type))
@@ -51,58 +70,71 @@ public class GuiItem implements GuiBased
                 actions.add(new GuiAction<>(this, optionalMacro.get(), type, action));
             }
         }
-
-        if (!this.actions.isEmpty())
-            ItemUtility.addLocalizedName(this.api, this.item, uuid.toString());
+        return this;
     }
 
-    @Override
-    public Gui getGui()
-    {
-        return this.page.getGui();
-    }
-
+    /**
+     * @return The slot in the inventory this item appears in.
+     * @since 0.4.0
+     */
     public int getSlot()
     {
         return this.slot;
     }
 
+    /**
+     * @return The UUID for this item.
+     * @since 0.4.0
+     */
     public UUID getUniqueId()
     {
         return this.uuid;
     }
 
+    /**
+     * @return The GuiPage this item appears in.
+     * @since 0.4.0
+     */
     public GuiPage getPage()
     {
         return this.page;
     }
 
+    /**
+     * @return The character associated with this item.
+     * @since 0.4.0
+     */
     public String getId()
     {
         return this.id;
     }
 
-    public GuiItem reloadItem()
+    /**
+     * Restores the original ItemStack for this item.
+     * @return The instance of GuiItem.
+     * @since 0.4.0
+     */
+    public GuiItem restoreItem()
     {
-        this.item = ItemUtility.build(section);
-        if (!this.actions.isEmpty())
-            ItemUtility.addLocalizedName(this.api, this.item, uuid.toString());
+        this.item = ItemUtility.build(this.api, this.getGui().getFile(), section);
         return this;
     }
 
     public ItemStack getItem()
     {
-        return this.item.clone();
+        ItemStack item = this.item.clone();
+
+        if (!this.actions.isEmpty())
+            ItemUtility.addUUID(this.api, item, uuid.toString());
+
+        return item;
     }
 
     public GuiItem setItem(ItemStack itemStack)
     {
         if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasLocalizedName())
-            ItemUtility.removedLocalizedName(this.api, this.item);
+            ItemUtility.removeUUID(this.api, this.item);
         this.item = itemStack;
-
-        if (!this.actions.isEmpty())
-            ItemUtility.addLocalizedName(this.api, this.item, uuid.toString());
 
         this.page.setItem(this);
         return this;
@@ -113,15 +145,28 @@ public class GuiItem implements GuiBased
         return actions;
     }
 
+    public GuiItem setActions(List<GuiAction<GuiItem>> actions)
+    {
+        this.actions.clear();
+        this.actions.addAll(actions);
+        return this;
+    }
+
     public GuiItem removeAction(GuiAction<GuiItem> action)
     {
         this.actions.remove(action);
         return this;
     }
 
+    public GuiItem addAction(GuiAction<GuiItem> action)
+    {
+        this.actions.add(action);
+        return this;
+    }
+
     public boolean isItem(ItemStack item)
     {
-        String localizedName = ItemUtility.getLocalizedName(this.api, item);
+        String localizedName = ItemUtility.getUUID(this.api, item);
         if (localizedName == null) return false;
         return localizedName.equalsIgnoreCase(this.uuid.toString());
     }
@@ -136,9 +181,7 @@ public class GuiItem implements GuiBased
     {
         List<GuiAction<GuiItem>> actions = new ArrayList<>(this.actions);
         for (GuiAction<GuiItem> action : actions)
-        {
             action.execute(event);
-        }
 
         return this;
     }

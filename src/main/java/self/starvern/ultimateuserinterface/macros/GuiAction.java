@@ -3,6 +3,7 @@ package self.starvern.ultimateuserinterface.macros;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,7 +24,7 @@ public class GuiAction<T extends GuiBased>
         this.macro = macro;
         this.type = type;
         this.raw = raw;
-        this.arguments = List.of(this.raw.replace(macro + " ", "").split(" "));
+        this.arguments = new ArrayList<>(List.of(this.raw.replace(macro + " ", "").split(" ")));
     }
 
     public T getHolder()
@@ -49,6 +50,12 @@ public class GuiAction<T extends GuiBased>
     public List<String> getArguments()
     {
         return arguments;
+    }
+
+    public void setArguments(List<String> newArgs)
+    {
+        this.arguments.clear();
+        this.arguments.addAll(newArgs);
     }
 
     public void execute(GuiEvent event)

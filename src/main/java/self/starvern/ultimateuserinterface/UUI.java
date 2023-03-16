@@ -49,4 +49,9 @@ public class UUI
     {
         return new NamespacedKey(this.plugin, "uui-uuid");
     }
+
+    public NamespacedKey getItemKey()
+    {
+        return new NamespacedKey(this.plugin, "uui-item-config");
+    }
 }

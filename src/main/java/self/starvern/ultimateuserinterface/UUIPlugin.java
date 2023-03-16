@@ -38,6 +38,9 @@ public class UUIPlugin extends JavaPlugin
         new PapiMacro(this.api, this).register();
         new NextPageMacro(this.api, this).register();
         new LastPageMacro(this.api, this).register();
+        new SetItemMacro(this.api, this).register();
+        new StaticMacro(this.api, this).register();
+        new PlayerListMacro(this.api, this).register();
     }
 
     @Override
@@ -58,7 +61,10 @@ public class UUIPlugin extends JavaPlugin
         if (created)
             getLogger().info("Created gui folder");
 
-        saveResource("gui/example_menu.yml", false);
+        File file = new File(getDataFolder(), "gui/example_menu.yml");
+
+        if (!file.exists())
+            saveResource("gui/example_menu.yml", false);
 
         api.getGuiManager().loadGuis();
     }

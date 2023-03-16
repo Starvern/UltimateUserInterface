@@ -40,14 +40,12 @@ public class GuiSession
     public static GuiSession start(UUI api, @NotNull GuiPage page, HumanEntity viewer)
     {
         GuiSession session = new GuiSession(api, page, viewer);
-
         Set<GuiSession> sessions = page.getGui().getSessions();
 
         for (GuiSession activeSession : sessions)
         {
             if (activeSession.getViewer().getUniqueId().equals(viewer.getUniqueId()))
             {
-                Bukkit.getLogger().info("End");
                 activeSession.endSession();
                 break;
             }
@@ -55,6 +53,7 @@ public class GuiSession
 
         page.getGui().getSessions().add(session);
         viewer.openInventory(page.getInventory());
+
         return session;
     }
 

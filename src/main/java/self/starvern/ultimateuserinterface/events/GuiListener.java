@@ -2,10 +2,13 @@ package self.starvern.ultimateuserinterface.events;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import self.starvern.ultimateuserinterface.UUI;
@@ -188,15 +191,30 @@ public class GuiListener implements Listener
     }
 
     @EventHandler
+    public void PlayerDropItemEvent(PlayerDropItemEvent event)
+    {
+        Player player = event.getPlayer();
+        InventoryView view = player.getOpenInventory();
+
+        InventoryHolder holder = view.getTopInventory().getHolder();
+
+        if (!(holder instanceof GuiPage))
+            return;
+
+        ItemUtility.removeUUID(this.api, event.getItemDrop().getItemStack());
+    }
+
+    @EventHandler
     public void GuiClickEvent(GuiClickEvent event)
     {
+        event.getPage().execute(event);
         event.getItem().ifPresent(item -> item.execute(event));
-        Bukkit.getLogger().info("cancelled: " + event.isCancelled());
     }
 
     @EventHandler
     public void GuiDragEvent(GuiDragEvent event)
     {
+        event.getPage().execute(event);
         for (GuiItem item : event.getItems())
             item.execute(event);
     }
@@ -204,6 +222,7 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiOpenEvent(GuiOpenEvent event)
     {
+        event.getPage().execute(event);
         for (GuiItem item : event.getPage().getItems())
             item.execute(event);
 
@@ -220,12 +239,13 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiCloseEvent(GuiCloseEvent event)
     {
-        ItemUtility.removedLocalizedName(this.api, event.getHuman().getItemOnCursor());
+        event.getPage().execute(event);
+        ItemUtility.removeUUID(this.api, event.getHuman().getItemOnCursor());
 
         for (ItemStack item : event.getHuman().getInventory().getContents())
         {
             if (item == null) continue;
-            ItemUtility.removedLocalizedName(this.api, item);
+            ItemUtility.removeUUID(this.api, item);
         }
 
         for (GuiItem item : event.getPage().getItems())
@@ -241,6 +261,7 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiTickEvent(GuiTickEvent event)
     {
+        event.getPage().execute(event);
         // Assigned to prevent ConcurrentModificationException
         List<GuiItem> items = new ArrayList<>();
         items.addAll(event.getPage().getItems());

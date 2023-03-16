@@ -1,20 +1,24 @@
 package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.api.GuiClickEvent;
-import self.starvern.ultimateuserinterface.api.GuiDragEvent;
-import self.starvern.ultimateuserinterface.api.GuiOpenEvent;
+import self.starvern.ultimateuserinterface.api.GuiEvent;
+import self.starvern.ultimateuserinterface.macros.ActionType;
+import self.starvern.ultimateuserinterface.macros.GuiAction;
+import self.starvern.ultimateuserinterface.macros.Macro;
+import self.starvern.ultimateuserinterface.managers.ChatManager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -25,28 +29,44 @@ import java.util.function.Consumer;
 public class GuiPage implements InventoryHolder, GuiBased
 {
     private final UUI api;
-
     private final Gui gui;
-    private String title;
+
     private final List<String> pattern;
     private final List<GuiItem> items;
     private final Inventory inventory;
-    private final int tick;
 
-    private GuiPage(UUI api, Gui gui, List<String> pattern)
+    private final List<GuiAction<GuiPage>> actions;
+
+    private String title;
+    private int tick;
+
+    protected GuiPage(UUI api, Gui gui, List<String> pattern)
     {
         this.api = api;
         this.gui = gui;
+
         this.title = this.gui.getTitle();
         this.pattern = pattern;
         this.items = new ArrayList<>();
-        this.inventory = Bukkit.createInventory(this, Math.min(9 * this.pattern.size(), 54), this.title);
+        this.inventory = Bukkit.createInventory(this, Math.min(9 * this.pattern.size(), 54),
+                ChatManager.colorize(this.title));
+        this.actions = new ArrayList<>();
         this.tick = this.gui.getConfig().getInt("tick", 20);
     }
 
-    protected static GuiPage createPage(UUI api, Gui gui, List<String> pattern)
+    public GuiPage duplicate()
     {
-        GuiPage guiPage = new GuiPage(api, gui, pattern);
+        return new GuiPage(this.api, this.gui, this.pattern).loadItems().loadActions();
+    }
+
+    /**
+     * Creates and loads GuiItems based on the pattern.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage loadItems()
+    {
+        this.items.clear();
 
         int slot = 0;
         for (String line : pattern)
@@ -54,22 +74,90 @@ public class GuiPage implements InventoryHolder, GuiBased
             for (char character : line.toCharArray())
             {
                 String letter = String.valueOf(character);
-                GuiItem item = new GuiItem(api, guiPage, letter, slot++);
-                guiPage.setItem(item);
+                GuiItem item = new GuiItem(api, this, letter, slot++);
+                this.setItem(item.loadActions());
             }
         }
 
-        return guiPage;
+        return this;
     }
 
     /**
-     * @return How often to fire the GuiTickEvent.
+     * Loads all macros for this page, as defined in the file.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage loadActions()
+    {
+        for (ActionType type : ActionType.values())
+        {
+            for (String action : this.getConfig().getStringList("actions." + type))
+            {
+                Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
+                if (optionalMacro.isEmpty()) continue;
+                actions.add(new GuiAction<>(this, optionalMacro.get(), type, action));
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Executes all macros for the page.
+     * @param event The event to run the macros for.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage execute(GuiEvent event)
+    {
+        List<GuiAction<GuiPage>> actions = new ArrayList<>(this.actions);
+        for (GuiAction<GuiPage> action : actions)
+            action.execute(event);
+
+        return this;
+    }
+
+    /**
+     * @return The File this GuiPage is found in.
+     * @since 0.4.0
+     */
+    public File getFile()
+    {
+        return this.gui.getFile();
+    }
+
+    /**
+     * @return The configuration based on the GuiPage's file.
+     * @since 0.4.0
+     */
+    public FileConfiguration getConfig()
+    {
+        return this.gui.getConfig();
+    }
+
+    /**
+     * @return How often to fire the GuiTickEvent (in ticks).
+     * @since 0.4.0
      */
     public int getTick()
     {
-        return tick;
+        return this.tick;
     }
 
+    /**
+     * @param tick The new tick for the GuiPage.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage setTick(int tick)
+    {
+        this.tick = tick;
+        return this;
+    }
+
+    /**
+     * @param slot The slot to check.
+     * @return An Optional which, if present, contains the GuiItem.
+     */
     public Optional<GuiItem> getItemAt(int slot)
     {
         return this.items.stream()
@@ -77,16 +165,45 @@ public class GuiPage implements InventoryHolder, GuiBased
                 .findFirst();
     }
 
+    /**
+     * @param slot The slot to get from.
+     * @return The ItemStack in the slot.
+     */
+    public ItemStack getItemStackAt(int slot)
+    {
+        return this.inventory.getItem(slot);
+    }
+
+    /**
+     * @return All items found in the GuiPage.
+     * @since 0.4.0
+     */
     public List<GuiItem> getItems()
     {
         return items;
     }
 
+    /**
+     * @return All items found in the GuiPage.
+     * @since 0.4.0
+     */
+    public List<GuiItem> getItems(String character)
+    {
+        return items.stream()
+                .filter(item -> item.getId().equalsIgnoreCase(character))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Loads the original version of all GuiItems.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
     public GuiPage reloadItems()
     {
         for (GuiItem item : this.items)
         {
-            item.reloadItem();
+            item.restoreItem();
             item.setItem(item.getItem());
         }
         return this;
@@ -123,6 +240,7 @@ public class GuiPage implements InventoryHolder, GuiBased
             if (guiItem.getSlot() == slot)
             {
                 guiItem.setItem(item);
+                this.setItem(guiItem);
                 return this;
             }
         }
@@ -143,6 +261,7 @@ public class GuiPage implements InventoryHolder, GuiBased
 
     /**
      * @return The page's title. Defaults to the GUI's title.
+     * @since 0.4.0
      */
     public String getTitle()
     {
