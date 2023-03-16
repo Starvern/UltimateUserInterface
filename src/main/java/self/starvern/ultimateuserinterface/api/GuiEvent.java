@@ -7,16 +7,36 @@ import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
-/**
- * Runs every tick
- */
-public class GuiTickEvent extends GuiEvent
+public class GuiEvent extends Event
 {
     private static final HandlerList handlers = new HandlerList();
 
-    public GuiTickEvent(@NotNull HumanEntity human, @NotNull GuiPage page)
+    private final Gui gui;
+    private final GuiPage page;
+    private final HumanEntity human;
+
+    public GuiEvent(@NotNull HumanEntity human, @NotNull GuiPage page)
     {
-        super(human, page);
+        this.gui = page.getGui();
+        this.page = page;
+        this.human = human;
+    }
+
+    @NotNull
+    public Gui getGui()
+    {
+        return gui;
+    }
+
+    @NotNull
+    public GuiPage getPage()
+    {
+        return page;
+    }
+
+    public HumanEntity getHuman()
+    {
+        return human;
     }
 
     @NotNull

@@ -1,27 +1,30 @@
 package self.starvern.ultimateuserinterface.lib;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.api.GuiClickEvent;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Set;
 
+/**
+ * Represents a list of GuiPages.
+ */
 public class Gui
 {
     private final UUI api;
-
     private final File file;
     private final FileConfiguration config;
     private final String id;
     private final String title;
     private final List<String> patterns;
     private final List<GuiPage> pages;
+    private final Set<GuiSession> sessions;
 
     public Gui(UUI api, File file)
     {
@@ -32,6 +35,7 @@ public class Gui
         this.title = this.config.getString("title", "Gui");
         this.patterns = this.config.getStringList("patterns");
         this.pages = new ArrayList<>();
+        this.sessions = new HashSet<>();
     }
 
     /**
@@ -54,19 +58,47 @@ public class Gui
         for (String patternName : patterns)
         {
             List<String> pattern = this.config.getStringList(patternName);
-            this.pages.add(new GuiPage(this.api, this, pattern).loadItems().update());
+            this.pages.add(new GuiPage(this.api, this, pattern).loadItems().loadActions());
         }
         return this;
     }
 
     /**
-     * Duplicates a page at the given index, and adds it to the end of the page list.
-     * @param index The page number.
-     * @since 0.1.5
+     * Generates the required pages to fix the amount provided.
+     * @return Instance of Gui.
+     * @since 0.4.0
      */
-    public void appendPage(int index)
+    public Gui ensureSize(GuiPage page, String character, int size)
     {
-        this.pages.add(this.pages.get((index >= this.pages.size()) ? 0 : index).duplicate());
+        int itemsPerPage = page.getItems(character).size();
+
+        if (itemsPerPage == 0 || itemsPerPage >= size || this.getAllItems(character).size() >= size)
+            return this;
+
+        for (int i = itemsPerPage; i < size; i+=itemsPerPage)
+            this.pages.add(page.duplicate());
+
+        return this;
+    }
+
+    public List<GuiItem> getAllItems()
+    {
+        List<GuiItem> items = new ArrayList<>();
+
+        for (GuiPage page : this.pages)
+            items.addAll(page.getItems());
+
+        return items;
+    }
+
+    public List<GuiItem> getAllItems(String character)
+    {
+        List<GuiItem> items = new ArrayList<>();
+
+        for (GuiPage page : this.pages)
+            items.addAll(page.getItems(character));
+
+        return items;
     }
 
     /**
@@ -91,7 +123,8 @@ public class Gui
      * @return The name of the GUI as defined in the filename
      * @since 0.1.0
      */
-    public String getId() {
+    public String getId()
+    {
         return this.id;
     }
 
@@ -144,58 +177,11 @@ public class Gui
     }
 
     /**
-     * @return Every item in all the pages of the GUI.
-     * @since 0.3.4
+     * @return All active sessions from this GUI.
      */
-    public List<GuiItem> getAllItems()
+    public Set<GuiSession> getSessions()
     {
-        List<GuiItem> items = new ArrayList<>();
-        for (GuiPage page : this.pages)
-            items.addAll(page.getItems());
-        return items;
-    }
-
-    /**
-     * @param id The character associated with the item.
-     * @return Every item with this character in all the pages of the GUI.
-     * @since 0.1.7
-     */
-    public List<GuiItem> getAllItems(String id)
-    {
-        List<GuiItem> items = new ArrayList<>();
-        for (GuiPage page : this.pages)
-            items.addAll(page.getItems(id));
-        return items;
-    }
-
-    /**
-     * Duplicates the first page x times to fulfill the items.
-     * @param amount The amount to ensure
-     * @since 0.1.7
-     */
-    public void ensureSize(String character, int amount)
-    {
-        GuiPage firstPage = pages.get(0);
-        int pageItemSize = firstPage.getItems(character).size();
-
-        if (pageItemSize == 0 || pageItemSize <= amount) return;
-
-        for (int index = 0; index <= (amount - pageItemSize) / pageItemSize; index++)
-            this.pages.add(firstPage.duplicate().loadItems());
-    }
-
-    /**
-     * Set the global event for every page in the GUI.
-     * @param globalEvent The event to run
-     * @return The instance of GuiPage
-     * @since 0.3.4
-     */
-    public Gui setGlobalEvent(Consumer<GuiClickEvent> globalEvent)
-    {
-        for (GuiPage page : this.pages)
-            page.setGlobalEvent(globalEvent);
-
-        return this;
+        return this.sessions;
     }
 
     /**
@@ -206,16 +192,6 @@ public class Gui
     public void open(HumanEntity entity)
     {
         this.getPage(0).open(entity);
-    }
-
-    /**
-     * Open the GUI page for a player.
-     * @param player The player to open the GUI page for.
-     * @since 0.1.7
-     */
-    public void open(Player player)
-    {
-        this.getPage(0).open(player);
     }
 }
 

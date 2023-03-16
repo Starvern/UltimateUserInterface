@@ -20,15 +20,11 @@ import java.util.Set;
  *     are distributed to slots, not when an item is moved to another slot.
  * </p>
  */
-public class GuiDragEvent extends Event implements Cancellable
+public class GuiDragEvent extends GuiEvent implements Cancellable
 {
     private static final HandlerList handlers = new HandlerList();
 
-    private final Gui gui;
-    private final GuiPage page;
     private final Set<GuiItem> items;
-
-    private final HumanEntity human;
 
     private final DragType dragType;
     private final ItemStack oldCursor;
@@ -39,25 +35,11 @@ public class GuiDragEvent extends Event implements Cancellable
     public GuiDragEvent(@NotNull HumanEntity human, @NotNull GuiPage page, @NotNull DragType dragType,
                         @NotNull Set<GuiItem> items, ItemStack oldCursor, ItemStack newCursor)
     {
-        this.gui = page.getGui();
-        this.page = page;
+        super(human, page);
         this.items = items;
-        this.human = human;
         this.dragType = dragType;
         this.newCursor = newCursor;
         this.oldCursor = oldCursor;
-    }
-
-    @NotNull
-    public Gui getGui()
-    {
-        return gui;
-    }
-
-    @NotNull
-    public GuiPage getPage()
-    {
-        return page;
     }
 
     /**
@@ -85,13 +67,7 @@ public class GuiDragEvent extends Event implements Cancellable
 
     public void setCursor(ItemStack itemStack)
     {
-        this.human.getItemOnCursor().setItemMeta(itemStack.getItemMeta());
-    }
-
-    @NotNull
-    public HumanEntity getWhoClicked()
-    {
-        return human;
+        super.getHuman().getItemOnCursor().setItemMeta(itemStack.getItemMeta());
     }
 
     @NotNull

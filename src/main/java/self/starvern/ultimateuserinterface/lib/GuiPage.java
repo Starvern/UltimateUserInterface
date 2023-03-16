@@ -1,103 +1,267 @@
 package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.api.GuiClickEvent;
+import self.starvern.ultimateuserinterface.api.GuiEvent;
+import self.starvern.ultimateuserinterface.macros.ActionType;
+import self.starvern.ultimateuserinterface.macros.GuiAction;
+import self.starvern.ultimateuserinterface.macros.Macro;
+import self.starvern.ultimateuserinterface.managers.ChatManager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-public class GuiPage implements InventoryHolder
+/**
+ * <p>
+ *     Represents an inventory, which has items that could be
+ *     GuiItems, and has events strapped to it.
+ * </p>
+ */
+public class GuiPage implements InventoryHolder, GuiBased
 {
     private final UUI api;
-
     private final Gui gui;
-    private String title;
+
     private final List<String> pattern;
     private final List<GuiItem> items;
-    private Inventory inventory;
-    private Consumer<GuiClickEvent> globalEvent;
+    private final Inventory inventory;
 
-    public GuiPage(UUI api, Gui gui, List<String> pattern)
+    private final List<GuiAction<GuiPage>> actions;
+
+    private String title;
+    private int tick;
+
+    protected GuiPage(UUI api, Gui gui, List<String> pattern)
     {
         this.api = api;
         this.gui = gui;
+
         this.title = this.gui.getTitle();
         this.pattern = pattern;
         this.items = new ArrayList<>();
-        this.inventory = Bukkit.createInventory(this, Math.min(9 * this.pattern.size(), 54), this.title);
+        this.inventory = Bukkit.createInventory(this, Math.min(9 * this.pattern.size(), 54),
+                ChatManager.colorize(this.title));
+        this.actions = new ArrayList<>();
+        this.tick = this.gui.getConfig().getInt("tick", 20);
+    }
+
+    public GuiPage duplicate()
+    {
+        return new GuiPage(this.api, this.gui, this.pattern).loadItems().loadActions();
+    }
+
+    /**
+     * Creates and loads GuiItems based on the pattern.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage loadItems()
+    {
+        this.items.clear();
+
+        int slot = 0;
+        for (String line : pattern)
+        {
+            for (char character : line.toCharArray())
+            {
+                String letter = String.valueOf(character);
+                GuiItem item = new GuiItem(api, this, letter, slot++);
+                this.setItem(item.loadActions());
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Loads all macros for this page, as defined in the file.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage loadActions()
+    {
+        for (ActionType type : ActionType.values())
+        {
+            for (String action : this.getConfig().getStringList("actions." + type))
+            {
+                Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
+                if (optionalMacro.isEmpty()) continue;
+                actions.add(new GuiAction<>(this, optionalMacro.get(), type, action));
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Executes all macros for the page.
+     * @param event The event to run the macros for.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage execute(GuiEvent event)
+    {
+        List<GuiAction<GuiPage>> actions = new ArrayList<>(this.actions);
+        for (GuiAction<GuiPage> action : actions)
+            action.execute(event);
+
+        return this;
+    }
+
+    /**
+     * @return The File this GuiPage is found in.
+     * @since 0.4.0
+     */
+    public File getFile()
+    {
+        return this.gui.getFile();
+    }
+
+    /**
+     * @return The configuration based on the GuiPage's file.
+     * @since 0.4.0
+     */
+    public FileConfiguration getConfig()
+    {
+        return this.gui.getConfig();
+    }
+
+    /**
+     * @return How often to fire the GuiTickEvent (in ticks).
+     * @since 0.4.0
+     */
+    public int getTick()
+    {
+        return this.tick;
+    }
+
+    /**
+     * @param tick The new tick for the GuiPage.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage setTick(int tick)
+    {
+        this.tick = tick;
+        return this;
+    }
+
+    /**
+     * @param slot The slot to check.
+     * @return An Optional which, if present, contains the GuiItem.
+     */
+    public Optional<GuiItem> getItemAt(int slot)
+    {
+        return this.items.stream()
+                .filter(item -> item.getSlot() == slot)
+                .findFirst();
+    }
+
+    /**
+     * @param slot The slot to get from.
+     * @return The ItemStack in the slot.
+     */
+    public ItemStack getItemStackAt(int slot)
+    {
+        return this.inventory.getItem(slot);
+    }
+
+    /**
+     * @return All items found in the GuiPage.
+     * @since 0.4.0
+     */
+    public List<GuiItem> getItems()
+    {
+        return items;
+    }
+
+    /**
+     * @return All items found in the GuiPage.
+     * @since 0.4.0
+     */
+    public List<GuiItem> getItems(String character)
+    {
+        return items.stream()
+                .filter(item -> item.getId().equalsIgnoreCase(character))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Loads the original version of all GuiItems.
+     * @return The instance of GuiPage.
+     * @since 0.4.0
+     */
+    public GuiPage reloadItems()
+    {
+        for (GuiItem item : this.items)
+        {
+            item.restoreItem();
+            item.setItem(item.getItem());
+        }
+        return this;
+    }
+
+    /**
+     * Sets a GuiItem in the inventory.
+     * @param item The item to set.
+     * @return The instance of GuiPage
+     * @since 0.4.0
+     */
+    public GuiPage setItem(GuiItem item)
+    {
+        if (!this.items.contains(item))
+            this.items.add(item);
+        this.inventory.setItem(item.getSlot(), item.getItem());
+        return this;
+    }
+
+    /**
+     * <p>
+     *     Sets the item, either replacing an empty slot,
+     *     or setting the ItemStack of a GuiItem.
+     * </p>
+     * @param item The item to set.
+     * @param slot Where to put the item.
+     * @return The instance of GuiPage
+     * @since 0.4.0
+     */
+    public GuiPage setItem(ItemStack item, int slot)
+    {
+        for (GuiItem guiItem : this.items)
+        {
+            if (guiItem.getSlot() == slot)
+            {
+                guiItem.setItem(item);
+                this.setItem(guiItem);
+                return this;
+            }
+        }
+
+        this.inventory.setItem(slot, item);
+        return this;
     }
 
     /**
      * @return The GUI this page is inside.
      * @since 0.1.0
      */
+    @Override
     public Gui getGui()
     {
         return this.gui;
     }
 
     /**
-     * Set an event to run anytime an item from this page is clicked.
-     * @param globalEvent The event to run
-     * @return The instance of GuiPage
-     * @since 0.2.3
-     */
-    public GuiPage setGlobalEvent(Consumer<GuiClickEvent> globalEvent)
-    {
-        this.globalEvent = globalEvent;
-        return this;
-    }
-
-    /**
-     * Executes the global event for this page.
-     * @param event The event to run.
-     * @return The instance of GuiPage.
-     */
-    public GuiPage runEvent(@NotNull GuiClickEvent event)
-    {
-        if (this.globalEvent == null) return this;
-        this.globalEvent.accept(event);
-        return this;
-    }
-
-    /**
-     * Update's the inventory with current items.
-     * @return An instance of GuiPage
-     * @since 0.2.3
-     */
-    public GuiPage update()
-    {
-        this.inventory = Bukkit.createInventory(this, 9 * this.pattern.size(), this.title);
-        this.updateInventory();
-        return this;
-    }
-
-    /**
-     * Update's the inventory with its original items.
-     * @return An instance of GuiPage
-     * @since 0.2.3
-     */
-    public GuiPage refresh()
-    {
-        return this.update().loadItems();
-    }
-
-    /**
      * @return The page's title. Defaults to the GUI's title.
+     * @since 0.4.0
      */
     public String getTitle()
     {
@@ -115,36 +279,6 @@ public class GuiPage implements InventoryHolder
     }
 
     /**
-     * Creates a clean duplicate of the page.
-     * @return The new instance of GuiPage.
-     * @since 0.1.5
-     */
-    public GuiPage duplicate()
-    {
-        return new GuiPage(this.api, this.gui, this.pattern).loadItems();
-    }
-
-    /**
-     * Constructs a list of GuiItems based on the pattern
-     * @since 0.1.0
-     */
-    public GuiPage loadItems()
-    {
-        this.items.clear();
-        int slot = 0;
-        for (String line : this.pattern)
-        {
-            for (char character : line.toCharArray())
-            {
-                String letter = String.valueOf(character);
-                GuiItem item = new GuiItem(this.api, this, letter, slot++);
-                this.items.add(item);
-            }
-        }
-        return this;
-    }
-
-    /**
      * @return The inventory constructed from the pattern.
      * @since 0.1.0
      */
@@ -152,88 +286,6 @@ public class GuiPage implements InventoryHolder
     public @NotNull Inventory getInventory()
     {
         return this.inventory;
-    }
-
-    /**
-     * Places all the GuiItems in their designated slots, overriding any changes.
-     * @return The inventory.
-     * @since 0.4.0
-     */
-    public Inventory updateInventory()
-    {
-        return this.updateInventory(new ArrayList<>());
-    }
-
-    /**
-     * Places all the GuiItems in their designated slots, overriding any changes.
-     * @param slots Don't update these items.
-     * @return The inventory.
-     * @since 0.4.0
-     */
-    public Inventory updateInventory(List<Integer> slots)
-    {
-        for (GuiItem item : this.items)
-        {
-            if (slots.contains(item.getSlot())) continue;
-            this.inventory.setItem(item.getSlot(), item.getItem().build());
-        }
-        return this.inventory;
-    }
-
-    /**
-     * @return A list of all items in this page.
-     * @since 0.1.6
-     */
-    public List<GuiItem> getItems()
-    {
-        return this.items;
-    }
-
-    /**
-     * @param item The item to compare to the GuiItem.
-     * @return The GuiItem, or if the item doesn't match anything, null.
-     * @since 0.1.0
-     */
-    public Optional<GuiItem> getItem(ItemStack item)
-    {
-        if (item == null)
-            return Optional.empty();
-
-        ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null)
-            return Optional.empty();
-
-        PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-        if (!container.has(new NamespacedKey(api.getPlugin(), "uui-item-id"), PersistentDataType.STRING))
-            return Optional.empty();
-
-        String rawUUID = container.get(new NamespacedKey(api.getPlugin(), "uui-item-id"), PersistentDataType.STRING);
-        UUID uuid = UUID.fromString(rawUUID);
-
-        for (GuiItem guiItem : this.items)
-        {
-            if (guiItem.getUniqueId().equals(uuid))
-                return Optional.of(guiItem);
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * @param id The character assigned to the items.
-     * @return All the items with the assigned to the designated character.
-     * @since 0.1.7
-     */
-    public List<GuiItem> getItems(String id)
-    {
-        List<GuiItem> items = new ArrayList<>();
-
-        for (GuiItem item : this.items)
-        {
-            if (item.getId().equalsIgnoreCase(id))
-                items.add(item);
-        }
-
-        return items;
     }
 
     /**
@@ -289,57 +341,10 @@ public class GuiPage implements InventoryHolder
     /**
      * Open the GUI page for an entity.
      * @param entity The entity to open the GUI page for.
-     * @since 0.1.7
-     */
-    public void open(HumanEntity entity)
-    {
-        entity.openInventory(this.updateInventory());
-    }
-
-    /**
-     * Open the GUI page for a player.
-     * @param player The player to open the GUI page for.
-     * @since 0.1.7
-     */
-    public void open(Player player)
-    {
-        player.openInventory(this.updateInventory());
-    }
-
-    /**
-     * Gets the item at the specified slot.
-     * @param slot The slot.
-     * @return The instance of GuiItem, or null.
-     * @since 0.2.3
-     */
-    public Optional<GuiItem> getItemAt(int slot)
-    {
-        for (GuiItem item : this.items)
-        {
-            if (item.getSlot() == slot) return Optional.of(item);
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * @param slot The slot to check.
-     * @return True, if the slot has had items removed or added to it.
      * @since 0.4.0
      */
-    public boolean isChanged(int slot)
+    public GuiSession open(HumanEntity entity)
     {
-        ItemStack item = this.inventory.getItem(slot);
-        Optional<GuiItem> guiItemOptional = getItemAt(slot);
-
-        if (guiItemOptional.isEmpty())
-            return false;
-
-        GuiItem guiItem = guiItemOptional.get();
-
-        if (guiItem.getItem().getMaterial().isAir() && (item == null || item.getType().isAir()))
-            return false;
-
-        return !guiItem.getItem().build().equals(item);
+        return GuiSession.start(this.api, this, entity);
     }
 }
