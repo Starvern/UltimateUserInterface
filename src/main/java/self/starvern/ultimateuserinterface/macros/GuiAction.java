@@ -5,6 +5,7 @@ import self.starvern.ultimateuserinterface.lib.GuiBased;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Represents a macro from either a GuiPage or GuiItem.

@@ -43,9 +43,7 @@ public class PlayerListMacro extends Macro
             return;
 
         String character = action.getArguments().get(0);
-
         event.getGui().ensureSize(event.getPage(), character, onlinePlayers.size());
-
         int index = 0;
 
         for (GuiItem item : event.getGui().getAllItems(character))
@@ -60,14 +58,7 @@ public class PlayerListMacro extends Macro
                 return;
 
             String replaceCharacter = action.getArguments().get(1);
-
-            Optional<GuiItem> optionalItem = event.getPage().getItems().stream()
-                    .filter(guiItem -> guiItem.getId().equalsIgnoreCase(replaceCharacter))
-                    .findFirst();
-
-            if (optionalItem.isEmpty()) return;
-            item.setItem(optionalItem.get().getItem());
-            item.setActions(optionalItem.get().getActions());
+            parseReplacement(item, replaceCharacter);
         }
 
     }
@@ -89,5 +80,16 @@ public class PlayerListMacro extends Macro
         }
 
         item.setItem(ItemUtility.parsePlaceholders(this.api, player, itemStack));
+    }
+
+    private void parseReplacement(GuiItem item, String replaceCharacter)
+    {
+        Optional<GuiItem> optionalItem = item.getPage().getItems().stream()
+                .filter(guiItem -> guiItem.getId().equalsIgnoreCase(replaceCharacter))
+                .findFirst();
+
+        if (optionalItem.isEmpty()) return;
+        item.setItem(optionalItem.get().getItem());
+        item.setActions(optionalItem.get().getActions());
     }
 }
