@@ -10,6 +10,8 @@ import self.starvern.ultimateuserinterface.macros.Macro;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * <p>
@@ -182,6 +184,28 @@ public class GuiItem implements GuiBased
         List<GuiAction<GuiItem>> actions = new ArrayList<>(this.actions);
         for (GuiAction<GuiItem> action : actions)
             action.execute(event);
+
+        return this;
+    }
+
+    /**
+     * A shorthand for creating macros on the fly.
+     * @param consumer The GuiEvent and GuiAction to provide to the Macro#run method.
+     * @return The instance of GuiItem
+     * @since 0.4.1
+     */
+    public GuiItem execute(BiConsumer<GuiEvent, GuiAction<GuiItem>> consumer)
+    {
+        Macro macro = new Macro(this.api, this.api.getPlugin(), "") {
+            @Override
+            public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
+            {
+                if (action.getHolder() instanceof GuiItem)
+                    consumer.accept(event, (GuiAction<GuiItem>) action);
+            }
+        };
+
+        this.actions.add(new GuiAction<>(this, macro, ActionType.CLICK, ""));
 
         return this;
     }
