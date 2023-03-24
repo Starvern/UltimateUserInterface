@@ -1,5 +1,6 @@
 package self.starvern.ultimateuserinterface.lib;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import self.starvern.ultimateuserinterface.UUI;
@@ -119,9 +120,14 @@ public class GuiItem implements GuiBased
     public GuiItem restoreItem()
     {
         this.item = ItemUtility.build(this.api, this.getGui().getFile(), section);
+        this.loadActions();
         return this;
     }
 
+    /**
+     * @return The ItemStack associated with this GuiItem.
+     * @since 0.4.0
+     */
     public ItemStack getItem()
     {
         ItemStack item = this.item.clone();
@@ -132,21 +138,33 @@ public class GuiItem implements GuiBased
         return item;
     }
 
+    /**
+     * @param itemStack The ItemStack to set the item to.
+     * @return The instance of GuiItem.
+     * @since 0.4.0
+     */
     public GuiItem setItem(ItemStack itemStack)
     {
         if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasLocalizedName())
             ItemUtility.removeUUID(this.api, this.item);
         this.item = itemStack;
-
-        this.page.setItem(this);
         return this;
     }
 
+    /**
+     * @return All the actions on this item.
+     * @since 0.4.0
+     */
     public List<GuiAction<GuiItem>> getActions()
     {
         return actions;
     }
 
+    /**
+     * @param actions The new actions of the GuiItem.
+     * @return The instance of GuiItem
+     * @since 0.4.0
+     */
     public GuiItem setActions(List<GuiAction<GuiItem>> actions)
     {
         this.actions.clear();
@@ -154,18 +172,44 @@ public class GuiItem implements GuiBased
         return this;
     }
 
+    /**
+     * @param action The action to remove from the GuiItem.
+     * @return The instance of GuiItem
+     * @since 0.4.0
+     */
     public GuiItem removeAction(GuiAction<GuiItem> action)
     {
         this.actions.remove(action);
         return this;
     }
 
+    /**
+     * @param action The action to add to the GuiItem.
+     * @return The instance of GuiItem.
+     * @since 0.4.0
+     */
     public GuiItem addAction(GuiAction<GuiItem> action)
     {
         this.actions.add(action);
         return this;
     }
 
+    /**
+     * Removes all actions from this GuiItem.
+     * @return The instance of GuiItem.
+     * @since 0.4.0
+     */
+    public GuiItem clearActions()
+    {
+        this.actions.clear();
+        return this;
+    }
+
+    /**
+     * Checks if the ItemStack is the same as the GuiItem's ItemStack.
+     * @param item The ItemStack to check.
+     * @return True if the ItemStack is the GuiItem's.
+     */
     public boolean isItem(ItemStack item)
     {
         String localizedName = ItemUtility.getUUID(this.api, item);
@@ -189,7 +233,10 @@ public class GuiItem implements GuiBased
     }
 
     /**
-     * A shorthand for creating macros on the fly.
+     * <p>
+     *     A shorthand for creating macros on the fly. This overloaded method defaults to ActionType.CLICK.
+     *     This will add an anonymous action to the GuiItem.
+     * </p>
      * @param consumer The GuiEvent and GuiAction to provide to the Macro#run method.
      * @return The instance of GuiItem
      * @since 0.4.1
@@ -206,6 +253,28 @@ public class GuiItem implements GuiBased
         };
 
         this.actions.add(new GuiAction<>(this, macro, ActionType.CLICK, ""));
+
+        return this;
+    }
+
+    /**
+     * A shorthand for creating macros on the fly. This will add an anonymous action to the GuiItem.
+     * @param consumer The GuiEvent and GuiAction to provide to the Macro#run method.
+     * @return The instance of GuiItem
+     * @since 0.4.1
+     */
+    public GuiItem execute(ActionType type, BiConsumer<GuiEvent, GuiAction<GuiItem>> consumer)
+    {
+        Macro macro = new Macro(this.api, this.api.getPlugin(), "") {
+            @Override
+            public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
+            {
+                if (action.getHolder() instanceof GuiItem)
+                    consumer.accept(event, (GuiAction<GuiItem>) action);
+            }
+        };
+
+        this.actions.add(new GuiAction<>(this, macro, type, ""));
 
         return this;
     }

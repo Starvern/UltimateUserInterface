@@ -1,12 +1,8 @@
 package self.starvern.ultimateuserinterface.managers;
 
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.lib.Gui;
-import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
 import java.io.File;
@@ -26,6 +22,21 @@ public class GuiManager
         this.api = api;
         guis = new HashSet<>();
         instances = new HashSet<>();
+    }
+
+    /**
+     *
+     * @param file The File to create the Gui from.
+     * @return The created Gui.
+     * @since 0.4.2
+     */
+    public Gui createGui(File file)
+    {
+        Gui gui = new Gui(this.api, file);
+
+        guis.add(gui);
+
+        return gui;
     }
 
     /**

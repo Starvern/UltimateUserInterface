@@ -11,6 +11,8 @@ import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,19 +26,22 @@ public class GuiDragEvent extends GuiEvent implements Cancellable
 {
     private static final HandlerList handlers = new HandlerList();
 
-    private final Set<GuiItem> items;
+    private final List<GuiItem> items;
 
     private final DragType dragType;
     private final ItemStack oldCursor;
     private final ItemStack newCursor;
+    private final Map<Integer, ItemStack> newItems;
 
     private boolean cancel;
 
     public GuiDragEvent(@NotNull HumanEntity human, @NotNull GuiPage page, @NotNull DragType dragType,
-                        @NotNull Set<GuiItem> items, ItemStack oldCursor, ItemStack newCursor)
+                        @NotNull List<GuiItem> items, Map<Integer, ItemStack> newItems, ItemStack oldCursor,
+                        ItemStack newCursor)
     {
         super(human, page);
         this.items = items;
+        this.newItems = newItems;
         this.dragType = dragType;
         this.newCursor = newCursor;
         this.oldCursor = oldCursor;
@@ -45,7 +50,7 @@ public class GuiDragEvent extends GuiEvent implements Cancellable
     /**
      * @return All GuiItems in which were changed during this event.
      */
-    public Set<GuiItem> getItems()
+    public List<GuiItem> getItems()
     {
         return this.items;
     }
@@ -68,6 +73,11 @@ public class GuiDragEvent extends GuiEvent implements Cancellable
     public void setCursor(ItemStack itemStack)
     {
         super.getHuman().getItemOnCursor().setItemMeta(itemStack.getItemMeta());
+    }
+
+    public Map<Integer, ItemStack> getNewItems()
+    {
+        return newItems;
     }
 
     @NotNull

@@ -1,6 +1,7 @@
 package self.starvern.ultimateuserinterface.events;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,6 +18,7 @@ import self.starvern.ultimateuserinterface.api.*;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.lib.GuiSession;
+import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
 import java.util.*;
@@ -37,65 +39,126 @@ public class GuiListener implements Listener
     public void InventoryClickEvent(InventoryClickEvent event)
     {
         InventoryView view = event.getView();
-        boolean outside = event.getSlotType().equals(InventoryType.SlotType.OUTSIDE);
-
-        Inventory inventory;
-
-        if (outside)
-            inventory = view.getTopInventory();
-        else
-            inventory = view.getInventory(event.getRawSlot());
-
+        Inventory inventory = view.getTopInventory();
         HumanEntity human = event.getWhoClicked();
 
         if (this.api.getItemInputManager().isListeningFor(human.getUniqueId()))
             this.api.getItemInputManager().consumeInput(human.getUniqueId(), event.getCurrentItem());
 
+        boolean outside = event.getSlotType().equals(InventoryType.SlotType.OUTSIDE);
+
         Optional<GuiPage> pageOptional = this.plugin.getApi().getGuiManager().getGuiPage(inventory);
         if (pageOptional.isEmpty())
+            return;
+        GuiPage page = pageOptional.get();
+
+        // At this point, we are inside a view containing a GuiPage
+
+        // This variable checks if our click event happens inside that GuiPage
+        boolean insidePage = this.api.getGuiManager().getGuiPage(view.getInventory(event.getRawSlot()))
+                .isPresent();
+
+        InventoryAction action = event.getAction();
+
+        ItemStack currentItem = event.getCurrentItem();
+        ItemStack cursor = event.getCursor();
+        ClickType clickType = event.getClick();
+
+        // When the user moves an item to the other inventory,
+        // We will use the insidePage variable to determine if you're
+        // taking or putting items.
+        if (action.equals(InventoryAction.MOVE_TO_OTHER_INVENTORY) & inventory.firstEmpty() != -1)
         {
-            if (event.isShiftClick())
+            Optional<GuiItem> guiItemOptional = page.getItemAt(inventory.firstEmpty());
+
+            // Later we will set the GuiItem to event.getCurrentItem
+
+            // Because the item that is clicked is the one being shift-clicked
+            GuiClickEvent clickEvent =new GuiClickEvent(
+                    human,
+                    page,
+                    clickType,
+                    guiItemOptional.orElse(null),
+                    currentItem,
+                    cursor,
+                    action,
+                    (insidePage) ? GuiClickType.TAKE : GuiClickType.PUT,
+                    outside
+            );
+            Bukkit.getPluginManager().callEvent(clickEvent);
+            event.setCancelled(clickEvent.isCancelled());
+        }
+
+        if (event.getAction().equals(InventoryAction.COLLECT_TO_CURSOR) && inventory.containsAtLeast(cursor, 1))
+        {
+            ItemStack[] contents = inventory.getStorageContents();
+
+            for (int itemIndex = 0; itemIndex < contents.length; itemIndex++)
             {
-                Optional<GuiPage> newPageOptional = this.plugin.getApi().getGuiManager()
-                        .getGuiPage(view.getTopInventory());
+                ItemStack item = contents[itemIndex];
+                if (item == null) continue;
 
-                if (newPageOptional.isEmpty())
-                    return;
+                if (!item.isSimilar(cursor))
+                    continue;
 
-                if (inventory == null || inventory.firstEmpty() == -1)
-                    return;
+                Optional<GuiItem> guiItemOptional = page.getItemAt(itemIndex);
 
-                Optional<GuiItem> guiItemOptional = newPageOptional.get().getItemAt(inventory.firstEmpty());
-                if (guiItemOptional.isEmpty()) return;
+                /*
+                    Since you are recalling the items to the cursor, you are
+                    always taking from the GuiPage.
+                 */
 
-                GuiClickEvent guiClickEvent = new GuiClickEvent(
+                GuiClickEvent clickEvent = new GuiClickEvent(
                         human,
-                        newPageOptional.get(),
-                        event.getClick(),
+                        page,
+                        clickType,
                         guiItemOptional.orElse(null),
+                        item,
+                        cursor,
+                        action,
+                        GuiClickType.TAKE,
                         outside
                 );
 
-                Bukkit.getPluginManager().callEvent(guiClickEvent);
-                event.setCancelled(guiClickEvent.isCancelled());
+                Bukkit.getPluginManager().callEvent(clickEvent);
+                event.setCancelled(clickEvent.isCancelled());
             }
-
-            return;
         }
 
-        Optional<GuiItem> guiItemOptional = pageOptional.get().getItemAt(event.getSlot());
-        if (guiItemOptional.isEmpty() && !outside) return;
+        if (insidePage && !outside)
+        {
+            Optional<GuiItem> guiItemOptional = pageOptional.get().getItemAt(event.getSlot());
 
-        GuiClickEvent guiClickEvent = new GuiClickEvent(
-                human,
-                pageOptional.get(),
-                event.getClick(),
-                guiItemOptional.orElse(null),
-                outside
-        );
+            /*
+             * When clicking an item, we must check if the cursor
+             * is air to determine if the item is being taken.
+             */
 
-        Bukkit.getPluginManager().callEvent(guiClickEvent);
-        event.setCancelled(guiClickEvent.isCancelled());
+            boolean cursorIsAir = (cursor != null && cursor.getType().isAir());
+
+            GuiClickType guiClickType = GuiClickType.PUT;
+
+            if (!cursorIsAir && currentItem != null && !currentItem.isSimilar(cursor))
+                guiClickType = GuiClickType.SWAP;
+
+            if (cursorIsAir && currentItem != null)
+                guiClickType = GuiClickType.TAKE;
+
+            GuiClickEvent clickEvent = new GuiClickEvent(
+                    human,
+                    page,
+                    clickType,
+                    guiItemOptional.orElse(null),
+                    currentItem,
+                    cursor,
+                    action,
+                    guiClickType,
+                    outside
+            );
+
+            Bukkit.getPluginManager().callEvent(clickEvent);
+            event.setCancelled(clickEvent.isCancelled());
+        }
     }
 
     @EventHandler
@@ -125,14 +188,20 @@ public class GuiListener implements Listener
                     page,
                     (event.getType().equals(DragType.EVEN)) ? ClickType.LEFT : ClickType.RIGHT,
                     guiItemOptional.orElse(null),
-                    false);
+                    page.getInventory().getItem(slot),
+                    event.getCursor(),
+                    (event.getType().equals(DragType.EVEN)) ? InventoryAction.PLACE_SOME : InventoryAction.PLACE_ONE,
+                    GuiClickType.PUT,
+                    false
+            );
 
             Bukkit.getPluginManager().callEvent(guiClickEvent);
             event.setCancelled(guiClickEvent.isCancelled());
             return;
         }
 
-        Set<GuiItem> items = new HashSet<>();
+        List<GuiItem> items = new ArrayList<>();
+        Map<Integer, ItemStack> newItems = event.getNewItems();
 
         for (int slot : event.getRawSlots())
         {
@@ -145,6 +214,7 @@ public class GuiListener implements Listener
                 page,
                 event.getType(),
                 items,
+                newItems,
                 event.getOldCursor(),
                 event.getCursor()
         );
@@ -208,7 +278,11 @@ public class GuiListener implements Listener
     public void GuiClickEvent(GuiClickEvent event)
     {
         event.getPage().execute(event);
-        event.getItem().ifPresent(item -> item.execute(event));
+        if (event.getItem().isEmpty())
+            return;
+
+        GuiItem item = event.getItem().get();
+        item.execute(event);
     }
 
     @EventHandler
@@ -216,7 +290,11 @@ public class GuiListener implements Listener
     {
         event.getPage().execute(event);
         for (GuiItem item : event.getItems())
+        {
             item.execute(event);
+            if (event.getNewItems().containsKey(item.getSlot()))
+                item.setItem(event.getNewItems().get(item.getSlot()));
+        }
     }
 
     @EventHandler
@@ -263,9 +341,14 @@ public class GuiListener implements Listener
     {
         event.getPage().execute(event);
         // Assigned to prevent ConcurrentModificationException
-        List<GuiItem> items = new ArrayList<>();
-        items.addAll(event.getPage().getItems());
+        List<GuiItem> items = new ArrayList<>(event.getPage().getItems());
         for (GuiItem item : items)
+        {
+            ItemStack invItem = event.getPage().getInventory().getItem(item.getSlot());
+            if (invItem == null) invItem = new ItemStack(Material.AIR);
+            item.setItem(invItem);
             item.execute(event);
+        }
+
     }
 }

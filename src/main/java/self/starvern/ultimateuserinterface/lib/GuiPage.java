@@ -18,6 +18,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -102,6 +103,20 @@ public class GuiPage implements InventoryHolder, GuiBased
     }
 
     /**
+     * Updates the inventory with the current GuiItems.
+     * @return The instance of GuiPage.
+     * @since 0.4.2
+     */
+    public GuiPage update()
+    {
+        for (GuiItem item : this.items)
+        {
+            inventory.setItem(item.getSlot(), item.getItem());
+        }
+        return this;
+    }
+
+    /**
      * Executes all macros for the page.
      * @param event The event to run the macros for.
      * @return The instance of GuiPage.
@@ -112,6 +127,28 @@ public class GuiPage implements InventoryHolder, GuiBased
         List<GuiAction<GuiPage>> actions = new ArrayList<>(this.actions);
         for (GuiAction<GuiPage> action : actions)
             action.execute(event);
+
+        return this;
+    }
+
+    /**
+     * A shorthand for creating macros on the fly.
+     * @param consumer The GuiEvent and GuiAction to provide to the Macro#run method.
+     * @return The instance of GuiPage.
+     * @since 0.4.2
+     */
+    public GuiPage execute(BiConsumer<GuiEvent, GuiAction<GuiPage>> consumer)
+    {
+        Macro macro = new Macro(this.api, this.api.getPlugin(), "") {
+            @Override
+            public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
+            {
+                if (action.getHolder() instanceof GuiPage)
+                    consumer.accept(event, (GuiAction<GuiPage>) action);
+            }
+        };
+
+        this.actions.add(new GuiAction<>(this, macro, ActionType.CLICK, ""));
 
         return this;
     }
@@ -220,32 +257,6 @@ public class GuiPage implements InventoryHolder, GuiBased
         if (!this.items.contains(item))
             this.items.add(item);
         this.inventory.setItem(item.getSlot(), item.getItem());
-        return this;
-    }
-
-    /**
-     * <p>
-     *     Sets the item, either replacing an empty slot,
-     *     or setting the ItemStack of a GuiItem.
-     * </p>
-     * @param item The item to set.
-     * @param slot Where to put the item.
-     * @return The instance of GuiPage
-     * @since 0.4.0
-     */
-    public GuiPage setItem(ItemStack item, int slot)
-    {
-        for (GuiItem guiItem : this.items)
-        {
-            if (guiItem.getSlot() == slot)
-            {
-                guiItem.setItem(item);
-                this.setItem(guiItem);
-                return this;
-            }
-        }
-
-        this.inventory.setItem(slot, item);
         return this;
     }
 

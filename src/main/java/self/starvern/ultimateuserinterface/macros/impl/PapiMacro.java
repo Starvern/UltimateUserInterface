@@ -5,12 +5,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
+import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -53,5 +57,14 @@ public class PapiMacro extends Macro
             return;
 
         item.setItem(ItemUtility.parsePlaceholders(this.api, player, itemStack));
+
+        for (GuiAction<GuiItem> itemAction : item.getActions())
+        {
+            List<String> newArgs = itemAction.getArguments().stream()
+                    .map(argument -> PlaceholderAPIHook.parse(player, argument))
+                    .collect(Collectors.toList());
+
+            itemAction.setArguments(newArgs);
+        }
     }
 }

@@ -41,6 +41,7 @@ public class UUIPlugin extends JavaPlugin
         new SetItemMacro(this.api, this).register();
         new StaticMacro(this.api, this).register();
         new PlayerListMacro(this.api, this).register();
+        new UpdateMacro(this.api, this).register();
     }
 
     @Override
