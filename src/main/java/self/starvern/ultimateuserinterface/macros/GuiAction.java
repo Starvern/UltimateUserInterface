@@ -1,5 +1,6 @@
 package self.starvern.ultimateuserinterface.macros;
 
+import org.bukkit.Bukkit;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 
@@ -10,6 +11,7 @@ import java.util.function.Consumer;
 /**
  * Represents a macro from either a GuiPage or GuiItem.
  * @param <T> The holder this macro runs for, either GuiItem or GuiPage.
+ * @since 0.4.2
  */
 public class GuiAction<T extends GuiBased>
 {
@@ -31,6 +33,18 @@ public class GuiAction<T extends GuiBased>
     public T getHolder()
     {
         return holder;
+    }
+
+    /**
+     * Copy this action under a new holder.
+     * @param <K> The type of the new holder.
+     * @param newHolder The new holder of this action.
+     * @return The new action.
+     * @since 0.4.2
+     */
+    public <K extends T> GuiAction<K> copyNewHolder(K newHolder)
+    {
+        return new GuiAction<>(newHolder, this.macro, this.type, this.raw);
     }
 
     public Macro getMacro()

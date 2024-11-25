@@ -7,10 +7,7 @@ import org.bukkit.entity.HumanEntity;
 import self.starvern.ultimateuserinterface.UUI;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a list of GuiPages.
@@ -58,27 +55,29 @@ public class Gui
         for (String patternName : patterns)
         {
             List<String> pattern = this.config.getStringList(patternName);
-            this.pages.add(new GuiPage(this.api, this, pattern).loadItems().loadActions());
+            GuiPage page = new GuiPage(this.api, this, pattern);
+            page.loadItems();
+            page.loadActions();
+            this.pages.add(page);
         }
         return this;
     }
 
     /**
      * Generates the required pages to fix the amount provided.
-     * @return Instance of Gui.
      * @since 0.4.0
      */
-    public Gui ensureSize(GuiPage page, String character, int size)
+    public void ensureSize(GuiPage page, String character, int size)
     {
-        int itemsPerPage = page.getItems(character).size();
+        int itemsPerPage = page.getSlottedItems(character).size();
 
-        if (itemsPerPage == 0 || itemsPerPage >= size || this.getAllItems(character).size() >= size)
-            return this;
+        if (itemsPerPage == 0 || itemsPerPage >= size || this.getAllSlottedItems(character).size() >= size)
+            return;
+
+        int pageIndex = this.pages.indexOf(page)+1;
 
         for (int i = itemsPerPage; i < size; i+=itemsPerPage)
-            this.pages.add(page.duplicate());
-
-        return this;
+            this.pages.add(pageIndex, page.duplicate());
     }
 
     public List<GuiItem> getAllItems()
@@ -96,7 +95,17 @@ public class Gui
         List<GuiItem> items = new ArrayList<>();
 
         for (GuiPage page : this.pages)
-            items.addAll(page.getItems(character));
+            page.getItem(character).ifPresent(items::add);
+
+        return items;
+    }
+
+    public List<SlottedGuiItem> getAllSlottedItems(String character)
+    {
+        List<SlottedGuiItem> items = new ArrayList<>();
+
+        for (GuiPage page : this.pages)
+            items.addAll(page.getSlottedItems(character));
 
         return items;
     }
@@ -178,10 +187,31 @@ public class Gui
 
     /**
      * @return All active sessions from this GUI.
+     * @since 0.4.2
      */
     public Set<GuiSession> getSessions()
     {
         return this.sessions;
+    }
+
+    /**
+     * Adds a session
+     * @param session The session to add
+     * @since 0.4.2
+     */
+    public void addSession(GuiSession session)
+    {
+        this.sessions.add(session);
+    }
+
+    /**
+     * Removes a session
+     * @param session The session to remove
+     * @since 0.4.2
+     */
+    public void removeSession(GuiSession session)
+    {
+        this.sessions.remove(session);
     }
 
     /**

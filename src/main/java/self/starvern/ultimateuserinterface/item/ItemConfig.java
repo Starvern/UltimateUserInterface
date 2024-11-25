@@ -1,6 +1,7 @@
 package self.starvern.ultimateuserinterface.item;
 
 import org.bukkit.Material;
+import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -111,7 +112,7 @@ public class ItemConfig implements Serializable
      */
     private static Optional<Enchantment> getEnchant(String displayName)
     {
-        return Arrays.stream(Enchantment.values())
+        return Registry.ENCHANTMENT.stream()
                 .filter(enchantment -> enchantment.getKey().getKey().equalsIgnoreCase(displayName))
                 .findFirst();
     }

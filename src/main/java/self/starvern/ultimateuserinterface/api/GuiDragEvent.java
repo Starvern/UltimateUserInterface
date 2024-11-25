@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
+import self.starvern.ultimateuserinterface.lib.SlottedGuiItem;
 
 import java.util.List;
 import java.util.Map;
@@ -21,12 +22,13 @@ import java.util.Set;
  *     Unlike the InventoryDragEvent, this will only fire when a stack of items
  *     are distributed to slots, not when an item is moved to another slot.
  * </p>
+ * @since 0.4.2
  */
 public class GuiDragEvent extends GuiEvent implements Cancellable
 {
     private static final HandlerList handlers = new HandlerList();
 
-    private final List<GuiItem> items;
+    private final List<SlottedGuiItem> items;
 
     private final DragType dragType;
     private final ItemStack oldCursor;
@@ -36,7 +38,7 @@ public class GuiDragEvent extends GuiEvent implements Cancellable
     private boolean cancel;
 
     public GuiDragEvent(@NotNull HumanEntity human, @NotNull GuiPage page, @NotNull DragType dragType,
-                        @NotNull List<GuiItem> items, Map<Integer, ItemStack> newItems, ItemStack oldCursor,
+                        @NotNull List<SlottedGuiItem> items, Map<Integer, ItemStack> newItems, ItemStack oldCursor,
                         ItemStack newCursor)
     {
         super(human, page);
@@ -49,8 +51,9 @@ public class GuiDragEvent extends GuiEvent implements Cancellable
 
     /**
      * @return All GuiItems in which were changed during this event.
+     * @since 0.4.2
      */
-    public List<GuiItem> getItems()
+    public List<SlottedGuiItem> getItems()
     {
         return this.items;
     }

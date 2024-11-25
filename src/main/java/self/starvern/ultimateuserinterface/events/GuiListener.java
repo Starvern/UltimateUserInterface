@@ -18,7 +18,7 @@ import self.starvern.ultimateuserinterface.api.*;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.lib.GuiSession;
-import self.starvern.ultimateuserinterface.macros.GuiAction;
+import self.starvern.ultimateuserinterface.lib.SlottedGuiItem;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
 import java.util.*;
@@ -69,7 +69,7 @@ public class GuiListener implements Listener
         // taking or putting items.
         if (action.equals(InventoryAction.MOVE_TO_OTHER_INVENTORY) & inventory.firstEmpty() != -1)
         {
-            Optional<GuiItem> guiItemOptional = page.getItemAt(inventory.firstEmpty());
+            Optional<SlottedGuiItem> guiItemOptional = page.getItemAt(inventory.firstEmpty());
 
             // Later we will set the GuiItem to event.getCurrentItem
 
@@ -101,7 +101,7 @@ public class GuiListener implements Listener
                 if (!item.isSimilar(cursor))
                     continue;
 
-                Optional<GuiItem> guiItemOptional = page.getItemAt(itemIndex);
+                Optional<SlottedGuiItem> guiItemOptional = page.getItemAt(itemIndex);
 
                 /*
                     Since you are recalling the items to the cursor, you are
@@ -127,7 +127,7 @@ public class GuiListener implements Listener
 
         if (insidePage && !outside)
         {
-            Optional<GuiItem> guiItemOptional = pageOptional.get().getItemAt(event.getSlot());
+            Optional<SlottedGuiItem> guiItemOptional = pageOptional.get().getItemAt(event.getSlot());
 
             /*
              * When clicking an item, we must check if the cursor
@@ -181,7 +181,7 @@ public class GuiListener implements Listener
         {
             int slot = event.getRawSlots().toArray(new Integer[0])[0];
 
-            Optional<GuiItem> guiItemOptional = page.getItemAt(slot);
+            Optional<SlottedGuiItem> guiItemOptional = page.getItemAt(slot);
 
             GuiClickEvent guiClickEvent = new GuiClickEvent(
                     event.getWhoClicked(),
@@ -200,12 +200,12 @@ public class GuiListener implements Listener
             return;
         }
 
-        List<GuiItem> items = new ArrayList<>();
+        List<SlottedGuiItem> items = new ArrayList<>();
         Map<Integer, ItemStack> newItems = event.getNewItems();
 
         for (int slot : event.getRawSlots())
         {
-            Optional<GuiItem> possibleItem = page.getItemAt(slot);
+            Optional<SlottedGuiItem> possibleItem = page.getItemAt(slot);
             possibleItem.ifPresent(items::add);
         }
 
@@ -289,7 +289,7 @@ public class GuiListener implements Listener
     public void GuiDragEvent(GuiDragEvent event)
     {
         event.getPage().execute(event);
-        for (GuiItem item : event.getItems())
+        for (SlottedGuiItem item : event.getItems())
         {
             item.execute(event);
             if (event.getNewItems().containsKey(item.getSlot()))
@@ -300,8 +300,10 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiOpenEvent(GuiOpenEvent event)
     {
-        event.getPage().execute(event);
-        for (GuiItem item : event.getPage().getItems())
+        GuiPage page = event.getPage();
+        page.execute(event);
+
+        for (SlottedGuiItem item : page.getSlottedItems())
             item.execute(event);
 
         if (event.isCancelled())
@@ -339,16 +341,22 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiTickEvent(GuiTickEvent event)
     {
-        event.getPage().execute(event);
+        GuiPage page = event.getPage();
+        page.execute(event);
         // Assigned to prevent ConcurrentModificationException
-        List<GuiItem> items = new ArrayList<>(event.getPage().getItems());
-        for (GuiItem item : items)
+        List<SlottedGuiItem> items = new ArrayList<>(page.getSlottedItems());
+        for (SlottedGuiItem item : items)
         {
+            /*
+             *  We must set the items in order to prevent any possible
+             *  duplication glitches upon ticking.
+             */
             ItemStack invItem = event.getPage().getInventory().getItem(item.getSlot());
             if (invItem == null) invItem = new ItemStack(Material.AIR);
             item.setItem(invItem);
+
             item.execute(event);
         }
-
+        page.update();
     }
 }

@@ -55,7 +55,7 @@ public class ItemUtility
             if (!playerName.isEmpty())
                 parsePlayerHead((SkullMeta) itemMeta, playerName);
             if (!texture.isEmpty())
-                parseTexture(itemMeta, texture);
+                parseTexture(api, itemMeta, texture);
         }
 
         Map<Enchantment, Integer> enchantments = config.getEnchantments();
@@ -82,7 +82,7 @@ public class ItemUtility
         return build(api, new ItemConfig(file, section));
     }
 
-    private static ItemMeta parseTexture(ItemMeta itemMeta, String texture)
+    private static ItemMeta parseTexture(UUI api, ItemMeta itemMeta, String texture)
     {
         GameProfile profile = new GameProfile(UUID.randomUUID(), null);
         profile.getProperties().put("textures", new Property("textures", texture));
@@ -95,7 +95,7 @@ public class ItemUtility
         }
         catch (NoSuchFieldException | IllegalAccessException exception)
         {
-            exception.printStackTrace();
+            api.getPlugin().getLogger().warning(exception.toString());
         }
 
         return itemMeta;
@@ -171,7 +171,7 @@ public class ItemUtility
             if (!playerName.isEmpty())
                 parsePlayerHead((SkullMeta) itemMeta, PlaceholderAPIHook.parse(player, playerName));
             if (!texture.isEmpty())
-                parseTexture(itemMeta, PlaceholderAPIHook.parse(player, texture));
+                parseTexture(api, itemMeta, PlaceholderAPIHook.parse(player, texture));
         }
 
         itemStack.setItemMeta(itemMeta);

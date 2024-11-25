@@ -7,6 +7,8 @@ import self.starvern.ultimateuserinterface.managers.GuiManager;
 import self.starvern.ultimateuserinterface.managers.ItemInputManager;
 import self.starvern.ultimateuserinterface.managers.MacroManager;
 
+import java.util.logging.Logger;
+
 public class UUI
 {
     private final UUIPlugin plugin;
@@ -14,6 +16,8 @@ public class UUI
     private final GuiManager guiManager;
     private final ItemInputManager itemInputManager;
     private final MacroManager macroManager;
+
+    private final Logger logger = Logger.getLogger("UUI");
 
     protected UUI(UUIPlugin plugin)
     {
@@ -53,5 +57,10 @@ public class UUI
     public NamespacedKey getItemKey()
     {
         return new NamespacedKey(this.plugin, "uui-item-config");
+    }
+
+    public Logger getLogger()
+    {
+        return this.logger;
     }
 }

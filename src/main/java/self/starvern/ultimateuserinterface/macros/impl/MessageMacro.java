@@ -11,6 +11,7 @@ import self.starvern.ultimateuserinterface.managers.ChatManager;
 
 /**
  * Sends the player a message.
+ * @since 0.4.2
  */
 public class MessageMacro extends Macro
 {

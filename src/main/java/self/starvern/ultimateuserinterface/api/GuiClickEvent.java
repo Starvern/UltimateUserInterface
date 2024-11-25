@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
+import self.starvern.ultimateuserinterface.lib.SlottedGuiItem;
 
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ import java.util.Optional;
  *     2) An item is shift clicked into a GuiItem's slot (only if the GuiItem is AIR)
  *     3) An item is stacked in a double click item collection
  * </p>
+ * @since 0.4.2
  */
 public class GuiClickEvent extends GuiEvent implements Cancellable
 {
@@ -38,7 +40,7 @@ public class GuiClickEvent extends GuiEvent implements Cancellable
     private boolean cancel;
 
     public GuiClickEvent(@NotNull HumanEntity human, @NotNull GuiPage page, @NotNull ClickType clickType,
-                         @Nullable GuiItem item, @Nullable ItemStack itemStack, @Nullable ItemStack cursor,
+                         @Nullable SlottedGuiItem item, @Nullable ItemStack itemStack, @Nullable ItemStack cursor,
                          InventoryAction action, GuiClickType type, boolean outside)
     {
         super(human, page);

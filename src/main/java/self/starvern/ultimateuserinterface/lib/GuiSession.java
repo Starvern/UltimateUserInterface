@@ -26,10 +26,9 @@ public class GuiSession
         this.gui = page.getGui();
         this.page = page;
         this.viewer = viewer;
-        this.task = Bukkit.getScheduler().runTaskTimer(this.api.getPlugin(), () -> {
-            Bukkit.getScheduler().runTask(this.api.getPlugin(), () ->
-                    Bukkit.getPluginManager().callEvent(new GuiTickEvent(this.viewer, this.page)));
-        }, 0, page.getTick());
+        this.task = Bukkit.getScheduler().runTaskTimer(this.api.getPlugin(), () ->
+                Bukkit.getScheduler().runTask(this.api.getPlugin(), () ->
+                Bukkit.getPluginManager().callEvent(new GuiTickEvent(this.viewer, this.page))), 0, page.getTick());
     }
 
     /**
@@ -51,8 +50,7 @@ public class GuiSession
             }
         }
 
-        page.getGui().getSessions().add(session);
-        viewer.openInventory(page.getInventory());
+        page.getGui().addSession(session);
 
         return session;
     }
@@ -82,7 +80,7 @@ public class GuiSession
     {
         Bukkit.getScheduler().runTask(this.api.getPlugin(), () -> {
             page.reloadItems();
-            gui.getSessions().remove(this);
+            gui.removeSession(this);
             Bukkit.getScheduler().cancelTask(this.task.getTaskId());
         });
     }
