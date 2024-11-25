@@ -11,6 +11,7 @@ import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
+import self.starvern.ultimateuserinterface.lib.SlottedGuiItem;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
@@ -19,6 +20,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * <p>
+ *      This macro is exclusive to GuiPage's actions. It is recommended to use with
+ *      either tick, or the less intensive open action type. It will automatically populate
+ *      items and parse placeholders as each respective player.
+ *      Usage:
+ *          '[playerlist] <gui item id> <gui item id if no more players>'
+ * </p>
+ * @since 0.4.2
+ */
 public class PlayerListMacro extends Macro
 {
     private final UUI api;
@@ -37,16 +48,21 @@ public class PlayerListMacro extends Macro
 
         List<Player> onlinePlayers = Bukkit.getOnlinePlayers().stream()
                 .map(OfflinePlayer::getPlayer)
-                .collect(Collectors.toList());
+                .toList();
 
-        if (action.getArguments().size() == 0)
+        if (action.getArguments().isEmpty())
             return;
 
         String character = action.getArguments().get(0);
+        String replaceCharacter = "";
+
+        if (action.getArguments().size() > 1)
+            replaceCharacter = action.getArguments().get(1);
+
         event.getGui().ensureSize(event.getPage(), character, onlinePlayers.size());
         int index = 0;
 
-        for (GuiItem item : event.getGui().getAllItems(character))
+        for (SlottedGuiItem item : event.getGui().getAllSlottedItems(character))
         {
             if (index < onlinePlayers.size())
             {
@@ -55,15 +71,13 @@ public class PlayerListMacro extends Macro
             }
 
             if (action.getArguments().size() == 1)
-                return;
+                continue;
 
-            String replaceCharacter = action.getArguments().get(1);
             parseReplacement(item, replaceCharacter);
         }
-
     }
 
-    private void parseItem(GuiItem item, Player player)
+    private void parseItem(SlottedGuiItem item, Player player)
     {
         ItemStack itemStack = item.getPage().getInventory().getItem(item.getSlot());
 
@@ -82,14 +96,15 @@ public class PlayerListMacro extends Macro
         item.setItem(ItemUtility.parsePlaceholders(this.api, player, itemStack));
     }
 
-    private void parseReplacement(GuiItem item, String replaceCharacter)
+    private void parseReplacement(SlottedGuiItem item, String replaceCharacter)
     {
-        Optional<GuiItem> optionalItem = item.getPage().getItems().stream()
-                .filter(guiItem -> guiItem.getId().equalsIgnoreCase(replaceCharacter))
-                .findFirst();
+        Optional<GuiItem> optionalReplacement = item.getPage().getItem(replaceCharacter);
+        if (optionalReplacement.isEmpty()) return;
 
-        if (optionalItem.isEmpty()) return;
-        item.setItem(optionalItem.get().getItem());
-        item.setActions(optionalItem.get().getActions());
+        GuiItem replacementItem = optionalReplacement.get();
+
+        item.setItem(replacementItem.getItem());
+        item.setActions(replacementItem.getActions());
+        item.getPage().update();
     }
 }

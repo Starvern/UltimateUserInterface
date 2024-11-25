@@ -1,23 +1,90 @@
 title: "Example Menu"
 
 # How often tick macros will fire.
-tick: 10
+tick: 100
 
 page_one:
   - '#########'
-  - '#0001000#'
-  - '#########'
+  - '#0@01000#'
+  - '<#######>'
 
 page_two:
   - '#########'
   - '#0002000#'
   - '#0002000#'
   - '#0002000#'
-  - '#########'
+  - '<#######>'
+
+page_three:
+  - '####&####'
+  - '#-------#'
+  - '#---^---#'
+  - '#-------#'
+  - '<#######>'
+
 
 patterns:
   - 'page_one'
   - 'page_two'
+  - 'page_three'
+
+'&':
+  material: BOOK
+  name: '&cTry and drag these around!'
+  actions:
+    click:
+      - '[static]'
+    drag:
+      - '[static]'
+
+'^':
+  material: COBBLESTONE
+  amount: 20
+
+'-':
+  material: AIR
+
+actions:
+  open:
+    - '[command] cmi sound block_amethyst_block_fall -p:10 -v:10 %player_name%'
+
+'@':
+  name: "&7%player_name%"
+  material: PLAYER_HEAD
+  player: "%player_name%"
+  lore:
+    - '&8Click to grab your head.'
+  actions:
+    open:
+      - '[papi]'
+    tick:
+      - '[papi]'
+    click:
+      - '[close]'
+      - '[command] head %player_name% %player_name% -s'
+      - '[command] cmi sound entity_horse_armor -p:10 -v:10'
+      - '[static]'
+    drag:
+      - '[static]'
+
+'>':
+  name: '{#0f0}Next Page'
+  material: PAPER
+  actions:
+    click:
+      - '[nextpage]'
+      - '[static]'
+
+'<':
+  name: '{#f00}Last Page'
+  material: PAPER
+  actions:
+    click:
+      - '[lastpage]'
+      - '[static]'
+    drag:
+      - '[static]'
+
 
 '1':
   name: '{#fa0}Master Sword'
@@ -32,10 +99,13 @@ patterns:
   actions:
     click:
       - '[message] You clicked on the master sword!'
+      - '[static]'
     open:
       - '[message] You opened the gui!'
     close:
       - '[message] You closed the gui!'
+    drag:
+      - '[static]'
 
 '2':
   name: '{#fa0}Grand Master Sword'
@@ -47,7 +117,25 @@ patterns:
   lore:
     - '&7An even more immensely powerful sword.'
     - '{#fa0>}Triple Gra{#fff<>}dient Support{#0af<}'
+  actions:
+    click:
+      - '[static]'
+    drag:
+      - '[static]'
 
 '#':
   name: ' '
   material: BLACK_STAINED_GLASS_PANE
+  actions:
+    click:
+      - '[static]'
+    drag:
+      - '[static]'
+
+'0':
+  material: AIR
+  actions:
+    click:
+      - '[static]'
+    drag:
+      - '[static]'

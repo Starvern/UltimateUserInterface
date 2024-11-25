@@ -9,6 +9,10 @@ import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 
+/**
+ * Prevents the item from being moved or taken from the GUI.
+ * @since 0.4.2
+ */
 public class StaticMacro extends Macro
 {
     public StaticMacro(UUI api, Plugin plugin)

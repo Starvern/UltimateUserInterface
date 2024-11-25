@@ -9,6 +9,7 @@ import self.starvern.ultimateuserinterface.macros.Macro;
 
 /**
  * Close the player's GUI.
+ * @since 0.4.2
  */
 public class CloseMacro extends Macro
 {
@@ -20,6 +21,7 @@ public class CloseMacro extends Macro
     @Override
     public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
     {
+        event.getGui().getSessions().removeIf(s -> s.getViewer().getUniqueId() == event.getHuman().getUniqueId());
         event.getHuman().closeInventory();
     }
 }
