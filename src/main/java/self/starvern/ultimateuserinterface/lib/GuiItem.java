@@ -195,7 +195,9 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
             public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
             {
                 if (action.getHolder() instanceof GuiItem)
+                {
                     consumer.accept(event, (GuiAction<GuiItem>) action);
+                }
             }
         };
 
