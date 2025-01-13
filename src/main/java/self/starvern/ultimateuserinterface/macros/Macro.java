@@ -13,9 +13,9 @@ import java.util.function.Consumer;
 
 public abstract class Macro
 {
-    private final UUI api;
-    private final Plugin plugin;
-    private final String id;
+    protected final UUI api;
+    protected final Plugin plugin;
+    protected final String id;
 
     public Macro(UUI api, Plugin plugin, String id)
     {

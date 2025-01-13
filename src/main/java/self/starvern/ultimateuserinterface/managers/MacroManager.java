@@ -4,6 +4,7 @@ import org.bukkit.plugin.Plugin;
 import self.starvern.ultimateuserinterface.macros.Macro;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,7 +21,8 @@ public class MacroManager
     public Optional<Macro> getMacro(String action)
     {
         return this.macros.stream()
-                .filter(macro -> action.startsWith(macro.toString()))
+                .filter(macro -> action.toLowerCase(Locale.ROOT)
+                        .startsWith(macro.toString().toLowerCase(Locale.ROOT)))
                 .findFirst();
     }
 
@@ -29,6 +31,10 @@ public class MacroManager
         return this.macros.stream()
                 .filter(macro -> macro.getPlugin().equals(plugin))
                 .collect(Collectors.toSet());
+    }
+
+    public Set<Macro> getMacros() {
+        return macros;
     }
 
     public void removeMacro(Macro macro)

@@ -18,24 +18,13 @@ public class UUIPlugin extends JavaPlugin
     {
         this.api = new UUI(this);
 
+        loadMacros();
         load();
 
         new InterfaceCommand(this);
         new GuiListener(this.api);
         if (Bukkit.getPluginManager().getPlugin("HeadDatabase") != null)
             new HeadDatabaseHook(this.api);
-
-        new CloseMacro(this.api, this).register();
-        new CommandMacro(this.api, this).register();
-        new MessageMacro(this.api, this).register();
-        new PlayerCommandMacro(this.api, this).register();
-        new PapiMacro(this.api, this).register();
-        new NextPageMacro(this.api, this).register();
-        new LastPageMacro(this.api, this).register();
-        new SetItemMacro(this.api, this).register();
-        new StaticMacro(this.api, this).register();
-        new PlayerListMacro(this.api, this).register();
-        new CraftMacro(this.api, this).register();
     }
 
     @Override
@@ -47,6 +36,24 @@ public class UUIPlugin extends JavaPlugin
     public UUI getApi()
     {
         return api;
+    }
+
+    public void loadMacros()
+    {
+        new CloseMacro(this.api, this).register();
+        new CommandMacro(this.api, this).register();
+        new MessageMacro(this.api, this).register();
+        new PlayerCommandMacro(this.api, this).register();
+        new PapiMacro(this.api, this).register();
+        new NextPageMacro(this.api, this).register();
+        new LastPageMacro(this.api, this).register();
+        new SetItemMacro(this.api, this).register();
+        new StaticMacro(this.api, this).register();
+        new ViewPermissionMacro(this.api, this).register();
+
+        // special macros
+        new PlayerListMacro(this.api, this).register();
+        new CraftMacro(this.api, this).register();
     }
 
     public void load()

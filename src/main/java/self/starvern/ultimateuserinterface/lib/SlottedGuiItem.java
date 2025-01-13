@@ -1,12 +1,6 @@
 package self.starvern.ultimateuserinterface.lib;
 
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.macros.GuiAction;
-
-import java.util.ArrayList;
-import java.util.List;
-
-// SlottedGuiItem
 
 /**
  * A GuiItem attached to a slot.

@@ -300,6 +300,17 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiOpenEvent(GuiOpenEvent event)
     {
+        GuiSession session = null;
+
+        for (GuiSession activeSession : event.getGui().getSessions())
+        {
+            if (activeSession.getViewer().getUniqueId().equals(event.getHuman().getUniqueId()))
+            {
+                session = activeSession;
+                break;
+            }
+        }
+
         GuiPage page = event.getPage();
         page.execute(event);
 
@@ -308,11 +319,8 @@ public class GuiListener implements Listener
 
         if (event.isCancelled())
         {
-            for (GuiSession session : event.getGui().getSessions())
-            {
-                if (session.getViewer().getUniqueId().equals(event.getHuman().getUniqueId()))
-                    session.endSession();
-            }
+            if (session != null)
+                session.endSession();
         }
     }
 
@@ -354,7 +362,6 @@ public class GuiListener implements Listener
             ItemStack invItem = event.getPage().getInventory().getItem(item.getSlot());
             if (invItem == null) invItem = new ItemStack(Material.AIR);
             item.setItem(invItem);
-
             item.execute(event);
         }
         page.update();
