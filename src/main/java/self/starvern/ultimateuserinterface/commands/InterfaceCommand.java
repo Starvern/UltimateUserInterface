@@ -1,19 +1,15 @@
 package self.starvern.ultimateuserinterface.commands;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.lib.Gui;
+import self.starvern.ultimateuserinterface.macros.Macro;
 
 import java.util.Optional;
 
@@ -38,13 +34,8 @@ public class InterfaceCommand implements CommandExecutor
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
                              @NotNull String[] args)
     {
-        if (!(sender instanceof Player player))
-        {
-            sender.sendMessage("You need to be a player to open a gui.");
-            return false;
-        }
 
-        if (!sender.hasPermission("ui.command.interface"))
+        if (!sender.hasPermission("uui.command.interface"))
         {
             sender.sendMessage("Insufficient permission.");
             return false;
@@ -52,13 +43,13 @@ public class InterfaceCommand implements CommandExecutor
 
         if (args.length == 0)
         {
-            player.sendMessage("You need to specify a gui name");
+            sender.sendMessage("You need to specify a gui name");
             return false;
         }
 
         if (args[0].equalsIgnoreCase("reload"))
         {
-            if (!sender.hasPermission("ui.command.interface.reload"))
+            if (!sender.hasPermission("uui.command.interface.reload"))
             {
                 sender.sendMessage("Insufficient permission.");
                 return false;
@@ -67,6 +58,20 @@ public class InterfaceCommand implements CommandExecutor
             sender.sendMessage("Reloaded UltimateUserInterface.");
             plugin.load();
             return true;
+        }
+
+        if (args[0].equalsIgnoreCase("list"))
+        {
+            for (Macro macro : this.plugin.getApi().getMacroManager().getMacros())
+            {
+                sender.sendMessage(macro.toString());
+            }
+        }
+
+        if (!(sender instanceof Player player))
+        {
+            sender.sendMessage("You need to be a player to open a gui.");
+            return false;
         }
 
         Optional<Gui> guiOptional = plugin.getApi().getGuiManager().getGui(args[0]);

@@ -1,5 +1,6 @@
 package self.starvern.ultimateuserinterface.lib;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -70,19 +71,25 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
             for (String action : actionList.getStringList(type.toString()))
             {
                 Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
-                if (optionalMacro.isEmpty()) continue;
-                actions.add(new GuiAction<>(this, optionalMacro.get(), type, action));
+                if (optionalMacro.isEmpty())
+                {
+                    this.api.getLogger()
+                            .warning("<" + this.page.getGui().getId() + ".yml> Unknown macro used: " + action);
+                    continue;
+                }
+                this.addAction(new GuiAction<>(this, optionalMacro.get(), type, action));
             }
         }
     }
 
     /**
-     * Slots this item into the page.
+     * Slots this item into the page and updates GuiPage slotted items.
      * @param slot The slot to place this item into.
      * @return The slotted item.
      * @since 0.4.2
      */
-    public SlottedGuiItem slot(int slot) {
+    public SlottedGuiItem slot(int slot)
+    {
         SlottedGuiItem slottedItem = new SlottedGuiItem(this.api, this, slot);
         slottedItem.loadActions();
         this.page.setItem(slottedItem);

@@ -111,9 +111,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
                 if (item == null)
                     continue;
 
-                SlottedGuiItem slottedItem = new SlottedGuiItem(this.api, item, slot);
-                slottedItem.loadActions();
-                this.setItem(slottedItem);
+                item.slot(slot);
             }
         }
 
@@ -128,7 +126,6 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     public void loadActions()
     {
         this.clearActions();
-
         ConfigurationSection actionList = this.config.getConfigurationSection("actions");
 
         if (actionList == null)
@@ -139,7 +136,12 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
             for (String action : actionList.getStringList(type.toString()))
             {
                 Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
-                if (optionalMacro.isEmpty()) continue;
+                if (optionalMacro.isEmpty())
+                {
+                    this.api.getLogger()
+                            .warning("<" + this.gui.getId() + ".yml> Unknown macro used: " + action);
+                    continue;
+                }
                 this.addAction(new GuiAction<>(this, optionalMacro.get(), type, action));
             }
         }
@@ -415,15 +417,13 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     }
 
     /**
-     * Open the GUI page for an entity.
+     * Open the GUI page for an entity, starting a new session.
      * @param entity The entity to open the GUI page for.
      * @since 0.4.0
      */
     public void open(HumanEntity entity)
     {
-        // Open inventory first.
-        entity.openInventory(this.getInventory());
-        GuiSession.start(this.api, this, entity);
+        this.open(entity, true);
     }
 
     /**
@@ -441,9 +441,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
         // Open inventory first.
         entity.openInventory(this.getInventory());
 
-        if (!newSession && viewerUUIDs.contains(entity.getUniqueId()))
-            return;
-
-        GuiSession.start(this.api, this, entity);
+        if (newSession || !viewerUUIDs.contains(entity.getUniqueId()))
+            GuiSession.start(this.api, this, entity);
     }
 }
