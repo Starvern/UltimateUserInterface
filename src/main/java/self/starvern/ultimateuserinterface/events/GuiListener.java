@@ -74,7 +74,7 @@ public class GuiListener implements Listener
             // Later we will set the GuiItem to event.getCurrentItem
 
             // Because the item that is clicked is the one being shift-clicked
-            GuiClickEvent clickEvent =new GuiClickEvent(
+            GuiClickEvent clickEvent = new GuiClickEvent(
                     human,
                     page,
                     clickType,
@@ -293,7 +293,7 @@ public class GuiListener implements Listener
         {
             item.execute(event);
             if (event.getNewItems().containsKey(item.getSlot()))
-                item.setItem(event.getNewItems().get(item.getSlot()));
+                item.setItemStack(event.getNewItems().get(item.getSlot()));
         }
     }
 
@@ -314,7 +314,7 @@ public class GuiListener implements Listener
         GuiPage page = event.getPage();
         page.execute(event);
 
-        for (SlottedGuiItem item : page.getSlottedItems())
+        for (SlottedGuiItem item : new ArrayList<>(page.getSlottedItems()))
             item.execute(event);
 
         if (event.isCancelled())
@@ -361,9 +361,18 @@ public class GuiListener implements Listener
              */
             ItemStack invItem = event.getPage().getInventory().getItem(item.getSlot());
             if (invItem == null) invItem = new ItemStack(Material.AIR);
-            item.setItem(invItem);
+            item.setItemStack(invItem);
             item.execute(event);
         }
         page.update();
+    }
+
+    @EventHandler
+    public void GuiCustomEvent(GuiCustomEvent event)
+    {
+        event.getPage().execute(event);
+
+        for (GuiItem item : new ArrayList<>(event.getPage().getSlottedItems()))
+            item.execute(event);
     }
 }

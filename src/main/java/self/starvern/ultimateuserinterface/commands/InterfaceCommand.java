@@ -81,6 +81,12 @@ public class InterfaceCommand implements CommandExecutor
             return false;
         }
 
+        if (guiOptional.get().getPermission() != null && !player.hasPermission(guiOptional.get().getPermission()))
+        {
+            player.sendMessage("No permission.");
+            return false;
+        }
+
         int page = 0;
 
         if (args.length >= 2)

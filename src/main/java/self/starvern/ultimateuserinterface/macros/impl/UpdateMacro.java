@@ -1,5 +1,6 @@
 package self.starvern.ultimateuserinterface.macros.impl;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
@@ -7,20 +8,16 @@ import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 
-/**
- * Close the player's GUI.
- * @since 0.4.2
- */
-public class CloseMacro extends Macro
+public class UpdateMacro extends Macro
 {
-    public CloseMacro(UUI api, Plugin plugin)
+    public UpdateMacro(UUI api, Plugin plugin)
     {
-        super(api, plugin, "close");
+        super(api, plugin, "update");
     }
 
     @Override
     public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
     {
-        event.getHuman().closeInventory();
+        event.getPage().update((OfflinePlayer) event.getHuman());
     }
 }

@@ -18,7 +18,7 @@ public class PlayerCommandMacro extends Macro
 {
     public PlayerCommandMacro(UUI api, Plugin plugin)
     {
-        super(api, plugin, "playercommand");
+        super(api, plugin, "playerCommand");
     }
 
     public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
@@ -31,11 +31,6 @@ public class PlayerCommandMacro extends Macro
                 String.join(" ", action.getArguments())
         );
 
-        this.performCommand(player, command);
-    }
-
-    private void performCommand(Player player, String text)
-    {
-        player.performCommand(ChatManager.colorize(text));
+        player.performCommand(ChatManager.colorize(command));
     }
 }

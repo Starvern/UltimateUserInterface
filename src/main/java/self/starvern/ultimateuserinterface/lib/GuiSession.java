@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiTickEvent;
 
@@ -15,7 +16,7 @@ public class GuiSession
     private final Gui gui;
     private final HumanEntity viewer;
 
-    private final BukkitTask task;
+    private final @Nullable BukkitTask task;
 
     @NotNull
     private GuiPage page;
@@ -26,9 +27,12 @@ public class GuiSession
         this.gui = page.getGui();
         this.page = page;
         this.viewer = viewer;
-        this.task = Bukkit.getScheduler().runTaskTimer(this.api.getPlugin(), () ->
+        if (this.page.getTick() != -1)
+            this.task = Bukkit.getScheduler().runTaskTimer(this.api.getPlugin(), () ->
                 Bukkit.getScheduler().runTask(this.api.getPlugin(), () ->
                 Bukkit.getPluginManager().callEvent(new GuiTickEvent(this.viewer, this.page))), 0, page.getTick());
+        else
+            this.task = null;
     }
 
     /**
@@ -79,9 +83,9 @@ public class GuiSession
     public void endSession()
     {
         Bukkit.getScheduler().runTask(this.api.getPlugin(), () -> {
-            page.reloadItems();
             gui.removeSession(this);
-            Bukkit.getScheduler().cancelTask(this.task.getTaskId());
+            if (this.task != null)
+                Bukkit.getScheduler().cancelTask(this.task.getTaskId());
         });
     }
 }

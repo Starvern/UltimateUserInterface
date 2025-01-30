@@ -1,16 +1,18 @@
 package self.starvern.ultimateuserinterface.lib;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
 import self.starvern.ultimateuserinterface.UUI;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Represents a list of GuiPages.
+ * @since 0.1.0
  */
 public class Gui
 {
@@ -19,9 +21,11 @@ public class Gui
     private final FileConfiguration config;
     private final String id;
     private final String title;
+    private final String permission;
     private final List<String> patterns;
     private final List<GuiPage> pages;
     private final Set<GuiSession> sessions;
+    private final Logger logger;
 
     public Gui(UUI api, File file)
     {
@@ -30,9 +34,35 @@ public class Gui
         this.config = YamlConfiguration.loadConfiguration(file);
         this.id = file.getName().replace(".yml", "");
         this.title = this.config.getString("title", "Gui");
+        this.permission = this.config.getString("permission");
         this.patterns = this.config.getStringList("patterns");
         this.pages = new ArrayList<>();
         this.sessions = new HashSet<>();
+        this.logger = Logger.getLogger("UUI::" + this.id + ".yml");
+    }
+
+    /**
+     * @return The logger for this GUI (includes GUI ID for better info).
+     * @since 0.5.0
+     */
+    public Logger getLogger()
+    {
+        return this.logger;
+    }
+
+    /**
+     * @return Instance of UUI api.
+     * @since 0.5.0
+     */
+    public UUI getApi()
+    {
+        return this.api;
+    }
+
+    @Nullable
+    public String getPermission()
+    {
+        return this.permission;
     }
 
     /**
@@ -56,8 +86,6 @@ public class Gui
         {
             List<String> pattern = this.config.getStringList(patternName);
             GuiPage page = new GuiPage(this.api, this, pattern);
-            page.loadItems();
-            page.loadActions();
             this.pages.add(page);
         }
         return this;
@@ -80,6 +108,10 @@ public class Gui
             this.pages.add(pageIndex, page.duplicate());
     }
 
+    /**
+     * @return All GuiItems from every GuiPage.
+     * @since 0.5.0
+     */
     public List<GuiItem> getAllItems()
     {
         List<GuiItem> items = new ArrayList<>();
@@ -90,6 +122,10 @@ public class Gui
         return items;
     }
 
+    /**
+     * @return All GuiItems from every GuiPage with the given id.
+     * @since 0.5.0
+     */
     public List<GuiItem> getAllItems(String character)
     {
         List<GuiItem> items = new ArrayList<>();
@@ -100,6 +136,24 @@ public class Gui
         return items;
     }
 
+    /**
+     * @return All SlottedGuiItems from every GuiPage.
+     * @since 0.5.0
+     */
+    public List<SlottedGuiItem> getAllSlottedItems()
+    {
+        List<SlottedGuiItem> items = new ArrayList<>();
+
+        for (GuiPage page : this.pages)
+            items.addAll(page.getSlottedItems());
+
+        return items;
+    }
+
+    /**
+     * @return All SlottedGuiItems from every GuiPage with the given id.
+     * @since 0.5.0
+     */
     public List<SlottedGuiItem> getAllSlottedItems(String character)
     {
         List<SlottedGuiItem> items = new ArrayList<>();
@@ -157,13 +211,17 @@ public class Gui
 
     /**
      * Gets a specific page from the GUI.
-     * @param page The index of the page to get.
-     * @return The GuiPage
+     * @param page The index of the page to get (page < 0 = 0, page > pages = pages).
+     * @return The GuiPage with the given page number.
      * @since 0.1.0
      */
     public GuiPage getPage(int page)
     {
-        return (page >= this.pages.size()) ? this.pages.get(0) : this.pages.get(page);
+        if (page < 0)
+            return this.pages.get(0);
+        if (page >= this.pages.size())
+            return this.pages.get(this.pages.size()-1);
+        return this.pages.get(page);
     }
 
     /**

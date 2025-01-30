@@ -1,24 +1,24 @@
 package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
+import self.starvern.ultimateuserinterface.macros.ActionTrigger;
 import self.starvern.ultimateuserinterface.macros.ActionType;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 import self.starvern.ultimateuserinterface.managers.ChatManager;
+import self.starvern.ultimateuserinterface.properties.GuiProperties;
 
-import javax.swing.text.html.Option;
 import java.io.File;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +43,8 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     private String title;
     private int tick;
 
+    private final GuiProperties<GuiPage> properties;
+
     protected GuiPage(UUI api, Gui gui, List<String> pattern)
     {
         super();
@@ -58,6 +60,28 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
                 ChatManager.colorize(this.title));
         this.tick = this.gui.getConfig().getInt("tick", 1000);
         this.config = gui.getConfig();
+        this.properties = new GuiProperties<>(this);
+        this.properties.loadProperties();
+        this.loadActions();
+        this.loadItems();
+    }
+
+    /**
+     * @return Instance of UUI api.
+     * @since 0.5.0
+     */
+    public UUI getApi()
+    {
+        return this.api;
+    }
+
+    /**
+     * @return Any properties this page has.
+     * @since 0.5.0
+     */
+    public GuiProperties<GuiPage> getProperties()
+    {
+        return this.properties;
     }
 
     /**
@@ -69,6 +93,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
         GuiPage page = new GuiPage(this.api, this.gui, this.pattern);
         page.loadItems();
         page.loadActions();
+        page.getProperties().loadProperties();
         return page;
     }
 
@@ -84,8 +109,9 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
         Set<String> allKeys = this.getConfig().getKeys(false);
         Map<String, GuiItem> keyItems = new HashMap<>();
 
-        // Check for all items
-        for (String key : allKeys) {
+        // Check for all items, loads any GuiItems
+        for (String key : allKeys)
+        {
             ConfigurationSection section = this.getConfig().getConfigurationSection(key);
             if (section == null)
                 continue;
@@ -93,12 +119,12 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
             if (section.getString("material") != null)
             {
                 GuiItem item = new GuiItem(api, this, key);
-                item.loadActions();
                 this.items.add(item);
                 keyItems.put(item.getId(), item);
             }
         }
 
+        // Slots all registered GuiItems into SlottedGuiItems
         int slot = -1;
         for (String line : pattern)
         {
@@ -119,7 +145,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     }
 
     /**
-     * Loads all macros for this page, as defined in the file.
+     * Loads all macros for this page.
      * @since 0.4.0
      */
     @Override
@@ -133,27 +159,66 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
 
         for (ActionType type : ActionType.values())
         {
-            for (String action : actionList.getStringList(type.toString()))
+            if (!type.equals(ActionType.EVENT))
             {
-                Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
-                if (optionalMacro.isEmpty())
+                for (String action : actionList.getStringList(type.toString()))
+                    this.setMacro(action, new ActionTrigger(type));
+                continue;
+            }
+
+            ConfigurationSection events = actionList.getConfigurationSection(type.toString());
+            if (events == null) continue;
+
+            for (String eventId : events.getValues(false).keySet())
+            {
+                for (String action : events.getStringList(eventId))
                 {
-                    this.api.getLogger()
-                            .warning("<" + this.gui.getId() + ".yml> Unknown macro used: " + action);
-                    continue;
+                    ActionTrigger trigger = new ActionTrigger(type, eventId);
+                    this.setMacro(action, trigger);
                 }
-                this.addAction(new GuiAction<>(this, optionalMacro.get(), type, action));
             }
         }
+    }
+
+    /**
+     * @param action The raw action arguments.
+     * @param trigger The trigger to run the action on.
+     * @since 0.5.0
+     */
+    private void setMacro(String action, ActionTrigger trigger)
+    {
+        Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
+        if (optionalMacro.isEmpty())
+        {
+            this.api.getLogger()
+                    .warning("<" + this.getGui().getId() + ".yml> Unknown macro used: " + action);
+            return;
+        }
+        this.addAction(new GuiAction<>(this, optionalMacro.get(), trigger, action));
     }
 
     /**
      * Updates the inventory with the current SlottedGuiItems.
      * @since 0.4.2
      */
-    public void update() {
+    public void update()
+    {
         for (SlottedGuiItem item : this.slottedItems)
-            inventory.setItem(item.getSlot(), item.getItem());
+            inventory.setItem(item.getSlot(), item.getItemStack());
+    }
+
+    /**
+     * Updates the inventory with the current SlottedGuiItems.
+     * @param player The player to parse placeholders for.
+     * @since 0.4.2
+     */
+    public void update(OfflinePlayer player)
+    {
+        for (SlottedGuiItem item : this.slottedItems)
+        {
+            item.updateItem(player);
+            inventory.setItem(item.getSlot(), item.getItemStack());
+        }
     }
 
     /**
@@ -166,28 +231,6 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
         List<GuiAction<GuiPage>> actions = new ArrayList<>(this.actions);
         for (GuiAction<GuiPage> action : actions)
             action.execute(event);
-    }
-
-    /**
-     * A shorthand for creating macros on the fly.
-     * @param consumer The GuiEvent and GuiAction to provide to the Macro#run method.
-     * @return The instance of GuiPage.
-     * @since 0.4.2
-     */
-    public GuiPage execute(BiConsumer<GuiEvent, GuiAction<GuiPage>> consumer)
-    {
-        Macro macro = new Macro(this.api, this.api.getPlugin(), "") {
-            @Override
-            public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
-            {
-                if (action.getHolder() instanceof GuiPage)
-                    consumer.accept(event, (GuiAction<GuiPage>) action);
-            }
-        };
-
-        this.addAction(new GuiAction<>(this, macro, ActionType.CLICK, ""));
-
-        return this;
     }
 
     /**
@@ -281,24 +324,6 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     }
 
     /**
-     * Loads the original version of all GuiItems.
-     * @since 0.4.0
-     */
-    public void reloadItems()
-    {
-        for (GuiItem item : this.items)
-        {
-            item.restoreItem();
-            item.setItem(item.getItem());
-        }
-        for (SlottedGuiItem item : this.slottedItems)
-        {
-            item.restoreItem();
-            item.setItem(item.getItem());
-        }
-    }
-
-    /**
      * <p>
      *      Sets a GuiItem in the inventory.
      *      If a SlottedGuiItem is already at that location, it will be overridden.
@@ -322,7 +347,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
 
         this.slottedItems.add(item);
 
-        this.inventory.setItem(item.getSlot(), item.getItem());
+        this.inventory.setItem(item.getSlot(), item.getItemStack());
         this.update();
         return this;
     }
@@ -335,6 +360,12 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     public Gui getGui()
     {
         return this.gui;
+    }
+
+    @Override
+    public ConfigurationSection getSection()
+    {
+        return getConfig();
     }
 
     /**

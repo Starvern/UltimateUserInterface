@@ -17,7 +17,7 @@ public class UUI
     private final ItemInputManager itemInputManager;
     private final MacroManager macroManager;
 
-    private final Logger logger = Logger.getLogger("UUI");
+    private final Logger logger;
 
     protected UUI(UUIPlugin plugin)
     {
@@ -25,6 +25,7 @@ public class UUI
         this.guiManager = new GuiManager(this);
         this.itemInputManager = new ItemInputManager();
         this.macroManager = new MacroManager();
+        this.logger = Logger.getLogger("UUI");
 
         Bukkit.getServicesManager().register(UUI.class, this, this.plugin, ServicePriority.Normal);
     }

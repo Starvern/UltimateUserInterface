@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
+import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
@@ -23,13 +24,13 @@ public class MessageMacro extends Macro
     @Override
     public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
     {
-        this.sendMessage((Player) event.getHuman(), String.join(" ", action.getArguments()));
+        if (!(event.getHuman() instanceof Player player)) return;
+        String message = PlaceholderAPIHook.parse(
+                player,
+                String.join(" ", action.getArguments())
+        );
+
+        player.sendMessage(ChatManager.colorize(message));
+
     }
-
-    private void sendMessage(Player player, String text)
-    {
-        player.sendMessage(ChatManager.colorize(text));
-    }
-
-
 }
