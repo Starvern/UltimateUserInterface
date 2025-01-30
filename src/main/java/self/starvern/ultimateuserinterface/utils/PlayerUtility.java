@@ -2,25 +2,24 @@ package self.starvern.ultimateuserinterface.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-
-import java.util.Arrays;
-import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 public class PlayerUtility
 {
     /**
      * @param name The name of the player.
-     * @return An Optional of the player (offline or online).
+     * @return The player (offline or online) or null if unknown.
      * @since 0.4.0
      */
-    public static Optional<OfflinePlayer> getPlayer(String name)
+    public static @Nullable OfflinePlayer getPlayer(String name)
     {
-        return Arrays.stream(Bukkit.getOfflinePlayers())
-                .filter(offlinePlayer -> {
-                    String playerName = offlinePlayer.getName();
-                    if (playerName == null) return false;
-                    return playerName.equalsIgnoreCase(name);
-                })
-                .findFirst();
+        for (OfflinePlayer player : Bukkit.getOfflinePlayers())
+        {
+            String playerName = player.getName();
+            if (playerName != null && playerName.equalsIgnoreCase(name))
+                return player;
+        }
+
+        return null;
     }
 }

@@ -1,14 +1,13 @@
 package self.starvern.ultimateuserinterface.api;
 
 import org.bukkit.entity.HumanEntity;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
-import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
 /**
- * Runs every tick
+ * Runs every x ticks as specified by GuiPage#getTick
+ * @since 0.4.2
  */
 public class GuiTickEvent extends GuiEvent
 {

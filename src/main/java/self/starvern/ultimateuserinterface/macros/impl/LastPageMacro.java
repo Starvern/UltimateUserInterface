@@ -1,6 +1,5 @@
 package self.starvern.ultimateuserinterface.macros.impl;
 
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiClickEvent;
@@ -21,9 +20,8 @@ public class LastPageMacro extends Macro
 {
     public LastPageMacro(UUI api, Plugin plugin)
     {
-        super(api, plugin, "lastpage");
+        super(api, plugin, "lastPage");
     }
-
 
     @Override
     public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
@@ -43,7 +41,7 @@ public class LastPageMacro extends Macro
         Optional<GuiItem> optionalItem = event.getPage().getItem(character);
         if (optionalItem.isEmpty()) return;
 
-        item.setItem(optionalItem.get().getItem());
+        item.setItemStack(optionalItem.get().getItemStack());
         event.getPage().update();
     }
 }

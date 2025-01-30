@@ -3,10 +3,13 @@ title: "Example Menu"
 # How often tick macros will fire.
 tick: 100
 
+# Each line represents a row in the inventory.
+# Each symbol corresponds to an item you specify below.
+# Any unspecified items default to AIR.
 page_one:
   - '#########'
   - '#0@01000#'
-  - '<#######>'
+  - '<###%###>'
 
 page_two:
   - '#########'
@@ -22,11 +25,70 @@ page_three:
   - '#-------#'
   - '<#######>'
 
-
+# Each line represents a page in the Gui.
+# You may navigate pages by using these macros:
+# - [setPage] <page#>
+# - [lastPage]
+# - [nextPage]
 patterns:
   - 'page_one'
   - 'page_two'
   - 'page_three'
+
+# These actions run on any event in the GuiPage.
+actions:
+  open:
+    - '[command] cmi sound block_amethyst_block_fall -p:10 -v:10 %player_name%'
+    - '[update]'
+
+# These are properties you can set.
+# Any item can read these properties, but the item's properties take primacy.
+properties:
+  page_property: "This is the value!"
+
+# Item Template
+#
+#'1':
+#  name: "Item Name"
+#  material: PLAYER_HEAD
+#  The values texture and hdb require material to be set to PLAYER_HEAD
+#  The HeadDatabase id for the head (plugin HeadDatabase required)
+#  hdb: 112391
+#  The texture of the head:
+#  texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWRmZGMzNTM0N2Q1NDJmOGYxYWJkYzNkMjM0NmZmZmEyMzJjYTc3Mjc5OGE0MzdlMGI4MTc4OGIyNTNhYmI5ZSJ9fX0="
+#  The player to parse placeholders including the head texture for
+#  player: "Notch"
+#  lore:
+#    - 'Line 1'
+#    - 'Property: {page_property}'
+#  amount: 10
+#  enchantments:
+#    sharpness: 10
+#  flags:
+#    - HIDE_ENCHANTS
+#  properties:
+#    name: "value"
+#  actions:
+#    event.name_here:
+#      - '[macro]'
+#    tick:
+#      - '[macro]'
+#    click:
+#      - '[callEvent] name_here'
+#    open:
+#      - '[macro]'
+#    close:
+#      - '[macro]'
+#    drag:
+#      - '[macro]'
+
+'%':
+  name: '&7Go to page 2'
+  material: END_CRYSTAL
+  actions:
+    click:
+      - '[setPage] 2'
+      - '[static]'
 
 '&':
   material: BOOK
@@ -41,12 +103,9 @@ patterns:
   material: COBBLESTONE
   amount: 20
 
+# Specify air so that the Gui can manage its actions
 '-':
   material: AIR
-
-actions:
-  open:
-    - '[command] cmi sound block_amethyst_block_fall -p:10 -v:10 %player_name%'
 
 '@':
   name: "&7%player_name%"
@@ -55,10 +114,6 @@ actions:
   lore:
     - '&8Click to grab your head.'
   actions:
-    open:
-      - '[papi]'
-    tick:
-      - '[papi]'
     click:
       - '[close]'
       - '[command] head %player_name% %player_name% -s'

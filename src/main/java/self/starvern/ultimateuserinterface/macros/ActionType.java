@@ -10,7 +10,8 @@ public enum ActionType
     DRAG(GuiDragEvent.class),
     OPEN(GuiOpenEvent.class),
     CLOSE(GuiCloseEvent.class),
-    TICK(GuiTickEvent.class);
+    TICK(GuiTickEvent.class),
+    EVENT(GuiCustomEvent.class);
 
     private final Class<? extends GuiEvent> eventClass;
 
@@ -21,7 +22,7 @@ public enum ActionType
 
     public Class<? extends GuiEvent> getEventClass()
     {
-        return eventClass;
+        return this.eventClass;
     }
 
     @Override

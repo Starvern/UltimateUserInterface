@@ -1,12 +1,14 @@
 package self.starvern.ultimateuserinterface.macros;
 
-import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
+import self.starvern.ultimateuserinterface.api.GuiCustomEvent;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
+import self.starvern.ultimateuserinterface.lib.GuiItem;
+import self.starvern.ultimateuserinterface.lib.GuiPage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Represents a macro from either a GuiPage or GuiItem.
@@ -17,54 +19,64 @@ public class GuiAction<T extends GuiBased>
 {
     private final T holder;
     private final Macro macro;
-    private final ActionType type;
+    private final ActionTrigger trigger;
     private final String raw;
-    private final List<String> arguments;
+    private List<String> arguments;
 
-    public GuiAction(T holder, Macro macro, ActionType type, String raw)
+    public GuiAction(T holder, Macro macro, ActionTrigger trigger, String raw)
     {
         this.holder = holder;
         this.macro = macro;
-        this.type = type;
+        this.trigger = trigger;
         this.raw = raw;
-        this.arguments = new ArrayList<>(List.of(this.raw.replace(macro + " ", "").split(" ")));
+        List<String> buffer = List.of(this.raw.split(" "));
+        this.arguments = new ArrayList<>(buffer.subList(1, buffer.size()));
     }
 
     public T getHolder()
     {
-        return holder;
-    }
-
-    /**
-     * Copy this action under a new holder.
-     * @param <K> The type of the new holder.
-     * @param newHolder The new holder of this action.
-     * @return The new action.
-     * @since 0.4.2
-     */
-    public <K extends T> GuiAction<K> copyNewHolder(K newHolder)
-    {
-        return new GuiAction<>(newHolder, this.macro, this.type, this.raw);
+        return this.holder;
     }
 
     public Macro getMacro()
     {
-        return macro;
+        return this.macro;
     }
 
-    public ActionType getType()
+    public ActionTrigger getTrigger()
     {
-        return type;
+        return this.trigger;
     }
 
     public String getRaw()
     {
-        return raw;
+        return this.raw;
     }
 
+    /**
+     * @return The arguments parsed with property placeholders.
+     * @since 0.5.0
+     */
     public List<String> getArguments()
     {
+        List<String> arguments = new ArrayList<>(this.arguments);
+
+        if (this.holder instanceof GuiItem item)
+            arguments = item.getItemConfig().parseAllPlaceholders(arguments);
+
+        if (this.holder instanceof GuiPage page)
+            arguments = page.getProperties().parsePropertyPlaceholders(arguments);
+
         return arguments;
+    }
+
+    /**
+     * @return The arguments without placeholders parsed.
+     * @since 0.5.0
+     */
+    public List<String> getRawArguments()
+    {
+        return new ArrayList<>(this.arguments);
     }
 
     public void setArguments(List<String> newArgs)
@@ -73,9 +85,27 @@ public class GuiAction<T extends GuiBased>
         this.arguments.addAll(newArgs);
     }
 
-    public void execute(GuiEvent event)
+    /**
+     * @param event The event to execute.
+     * @since 0.4.2
+     */
+    public void execute(@NotNull GuiEvent event)
     {
-        if (this.type.getEventClass().equals(event.getClass()))
+        if (!this.trigger.getType().getEventClass().equals(event.getClass()))
+            return;
+
+        if (!(event instanceof GuiCustomEvent customEvent))
+        {
+            this.macro.run(event, this);
+            return;
+        }
+
+        String eventId = customEvent.getId();
+        String actionId = this.trigger.getId();
+
+        if (eventId == null || actionId == null) return;
+
+        if (eventId.equalsIgnoreCase(actionId))
             this.macro.run(event, this);
     }
 }
