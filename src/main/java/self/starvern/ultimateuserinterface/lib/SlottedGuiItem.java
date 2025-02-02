@@ -4,7 +4,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.item.ItemConfig;
+import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
 /**
@@ -45,9 +47,17 @@ public class SlottedGuiItem extends GuiItem
         return item;
     }
 
+    /**
+     * Restores and updates the item with placeholders.
+     * @param player The player to parse placeholders for.
+     * @since 0.5.1
+     */
     public void updateItem(OfflinePlayer player)
     {
         this.setItemStack(this.itemConfig.buildItem(player));
+        this.loadActions();
+        for (GuiAction<GuiItem> action : this.actions)
+            action.setArguments(PlaceholderAPIHook.parse(player, action.getArguments()));
     }
 
     /**
