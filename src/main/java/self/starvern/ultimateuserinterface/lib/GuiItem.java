@@ -223,9 +223,9 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
      */
     public void execute(GuiEvent event)
     {
-        List<GuiAction<GuiItem>> actions = new ArrayList<>(this.actions);
-        for (GuiAction<GuiItem> action : actions)
-            action.execute(event);
+        // Standard for loop so that macros may alter arguments.
+        for (int i = 0; i < this.actions.size(); i++)
+            this.actions.get(i).execute(event);
     }
 }
 
