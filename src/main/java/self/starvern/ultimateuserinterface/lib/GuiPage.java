@@ -10,6 +10,7 @@ import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
+import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.macros.ActionTrigger;
 import self.starvern.ultimateuserinterface.macros.ActionType;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
@@ -34,7 +35,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     private final Gui gui;
 
     private final List<String> pattern;
-    private final Inventory inventory;
+    private Inventory inventory;
     private final ConfigurationSection config;
 
     private final List<GuiItem> items;
@@ -398,6 +399,25 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     }
 
     /**
+     * @return The inventory constructed from the pattern.
+     * @since 0.1.0
+     */
+    public @NotNull Inventory getInventory(HumanEntity entity)
+    {
+        if (!(entity instanceof OfflinePlayer player))
+            return getInventory();
+
+        String title = PlaceholderAPIHook.parse(player, this.properties.parsePropertyPlaceholders(this.title));
+
+        this.inventory = Bukkit.createInventory(
+                this,
+                Math.min(9 * this.pattern.size(), 54),
+                ChatManager.colorize(title));
+
+        return this.inventory;
+    }
+
+    /**
      * @return True if the page is the first of the GUI.
      * @since 0.1.7
      */
@@ -470,7 +490,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
                 .map(s -> s.getViewer().getUniqueId()).toList();
 
         // Open inventory first.
-        entity.openInventory(this.getInventory());
+        entity.openInventory(this.getInventory(entity));
 
         if (newSession || !viewerUUIDs.contains(entity.getUniqueId()))
             GuiSession.start(this.api, this, entity);

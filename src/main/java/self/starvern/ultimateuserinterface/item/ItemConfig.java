@@ -47,6 +47,7 @@ public class ItemConfig implements Serializable
     private final @Nullable String texture;
     private final @Nullable String playerName;
     private final @Nullable String hdbId;
+    private final @Nullable String customModelData;
 
     private final ConfigurationSection enchantmentSection;
     private final List<String> itemFlags;
@@ -64,6 +65,7 @@ public class ItemConfig implements Serializable
         this.texture = section.getString("texture");
         this.hdbId = section.getString("hdb");
         this.playerName = section.getString("player");
+        this.customModelData = section.getString("custom_model_data");
 
         this.enchantmentSection = section.getConfigurationSection("enchantments");
         this.itemFlags = section.getStringList("flags");
@@ -207,16 +209,13 @@ public class ItemConfig implements Serializable
 
         for (String flagName : this.itemFlags)
         {
-            ItemFlag flag;
             try
             {
-                flag = ItemFlag.valueOf(flagName.toUpperCase(Locale.ROOT));
+                flags.add(ItemFlag.valueOf(flagName.toUpperCase(Locale.ROOT)));
             }
-            catch (IllegalArgumentException exception)
+            catch (IllegalArgumentException ignored)
             {
-                continue;
             }
-            flags.add(flag);
         }
 
         return flags;
@@ -263,7 +262,7 @@ public class ItemConfig implements Serializable
     public void parseTexture(ItemMeta itemMeta, String texture)
     {
         if (texture == null) return;
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+        GameProfile profile = new GameProfile(UUID.randomUUID(), "textures");
         profile.getProperties().put("textures", new Property("textures", texture));
 
         try
@@ -322,6 +321,20 @@ public class ItemConfig implements Serializable
         List<String> lore = PlaceholderAPIHook.parse(player, this.parseAllPlaceholders(this.lore));
         String texture = PlaceholderAPIHook.parse(player, this.parseAllPlaceholders(this.texture));
         String hdbId = PlaceholderAPIHook.parse(player, this.parseAllPlaceholders(this.hdbId));
+        String rawCustomModelData = PlaceholderAPIHook.parse(player, parseAllPlaceholders(this.customModelData));
+
+        try
+        {
+            if (rawCustomModelData != null)
+            {
+                int data = Integer.parseInt(rawCustomModelData);
+                itemMeta.setCustomModelData(data);
+            }
+        }
+        catch (NumberFormatException exception)
+        {
+            item.getGui().getLogger().warning("custom_model_data doesn't parse to a number.");
+        }
 
         if (itemStack.getType().equals(Material.PLAYER_HEAD))
         {
