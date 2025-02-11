@@ -8,6 +8,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
@@ -35,7 +36,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     private final Gui gui;
 
     private final List<String> pattern;
-    private Inventory inventory;
+    private final Inventory inventory;
     private final ConfigurationSection config;
 
     private final List<GuiItem> items;
@@ -45,6 +46,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     private int tick;
 
     private final GuiProperties<GuiPage> properties;
+    private final List<GuiArgument> arguments;
 
     protected GuiPage(UUI api, Gui gui, List<String> pattern)
     {
@@ -55,16 +57,18 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
         this.pattern = pattern;
         this.items = new ArrayList<>();
         this.slottedItems = new ArrayList<>();
-        this.inventory = Bukkit.createInventory(
-                this,
-                Math.min(9 * this.pattern.size(), 54),
-                ChatManager.colorize(this.title));
         this.tick = this.gui.getConfig().getInt("tick", 1000);
         this.config = gui.getConfig();
         this.properties = new GuiProperties<>(this);
         this.properties.loadProperties();
+        this.inventory = Bukkit.createInventory(
+                this,
+                Math.min(9 * this.pattern.size(), 54),
+                ChatManager.colorize(this.properties.parsePropertyPlaceholders(this.title)));
+        this.arguments = new ArrayList<>();
         this.loadActions();
         this.loadItems();
+        this.loadArguments();
     }
 
     /**
@@ -74,6 +78,43 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     public UUI getApi()
     {
         return this.api;
+    }
+
+    public void loadArguments()
+    {
+        this.arguments.clear();
+        ConfigurationSection argumentSection = this.config.getConfigurationSection("arguments");
+        if (argumentSection == null) return;
+
+        for (String id : argumentSection.getKeys(false))
+        {
+            ConfigurationSection section = argumentSection.getConfigurationSection(id);
+            if (section == null)
+                continue;
+
+            String type = section.getString("type");
+            boolean required = section.getBoolean("required");
+            String defaultValue = section.getString("default", "");
+
+            this.arguments.add(new GuiArgument(id, type, defaultValue, required));
+        }
+    }
+
+    /**
+     * @param uuid The item's UUID to get.
+     * @return The item with the given UUID, or null.
+     * @since 0.6.0
+     */
+    public @Nullable SlottedGuiItem getItemFromUniqueId(UUID uuid)
+    {
+        for (SlottedGuiItem item : this.slottedItems)
+            if (item.getUniqueId().equals(uuid)) return item;
+        return null;
+    }
+
+    public List<GuiArgument> getArguments()
+    {
+        return this.arguments;
     }
 
     /**
@@ -204,21 +245,24 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
      */
     public void update()
     {
-        for (SlottedGuiItem item : this.slottedItems)
-            inventory.setItem(item.getSlot(), item.getItemStack());
-    }
-
-    /**
-     * Updates the inventory with the current SlottedGuiItems.
-     * @param player The player to parse placeholders for.
-     * @since 0.4.2
-     */
-    public void update(OfflinePlayer player)
-    {
-        for (SlottedGuiItem item : this.slottedItems)
+        for (HumanEntity viewer : this.inventory.getViewers())
         {
-            item.updateItem(player);
-            inventory.setItem(item.getSlot(), item.getItemStack());
+            if (!(viewer instanceof OfflinePlayer player))
+                continue;
+            try
+            {
+                String parsedTitle = PlaceholderAPIHook
+                        .parse(player, this.properties.parsePropertyPlaceholders(this.title));
+                viewer.getOpenInventory()
+                        .setTitle(ChatManager.colorize(parsedTitle));
+            } catch (RuntimeException ignored) {
+            }
+
+            for (SlottedGuiItem item : this.slottedItems)
+            {
+                item.updateItem(player);
+                inventory.setItem(item.getSlot(), item.getItemStack());
+            }
         }
     }
 
@@ -399,25 +443,6 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     }
 
     /**
-     * @return The inventory constructed from the pattern.
-     * @since 0.1.0
-     */
-    public @NotNull Inventory getInventory(HumanEntity entity)
-    {
-        if (!(entity instanceof OfflinePlayer player))
-            return getInventory();
-
-        String title = PlaceholderAPIHook.parse(player, this.properties.parsePropertyPlaceholders(this.title));
-
-        this.inventory = Bukkit.createInventory(
-                this,
-                Math.min(9 * this.pattern.size(), 54),
-                ChatManager.colorize(title));
-
-        return this.inventory;
-    }
-
-    /**
      * @return True if the page is the first of the GUI.
      * @since 0.1.7
      */
@@ -490,7 +515,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
                 .map(s -> s.getViewer().getUniqueId()).toList();
 
         // Open inventory first.
-        entity.openInventory(this.getInventory(entity));
+        entity.openInventory(this.getInventory());
 
         if (newSession || !viewerUUIDs.contains(entity.getUniqueId()))
             GuiSession.start(this.api, this, entity);

@@ -199,7 +199,7 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
         ItemStack item = this.itemStack.clone();
 
         if (!this.actions.isEmpty())
-            ItemUtility.addUUID(this.api, item, uuid.toString());
+            ItemUtility.addUUID(this.api, item, this.uuid.toString());
 
         return item;
     }

@@ -7,16 +7,21 @@ import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 
-public class UpdateMacro extends Macro
+public class SetTitleMacro extends Macro
 {
-    public UpdateMacro(UUI api, Plugin plugin)
+    public SetTitleMacro(UUI api, Plugin plugin)
     {
-        super(api, plugin, "update");
+        super(api, plugin, "setTitle");
     }
 
     @Override
     public void run(GuiEvent event, GuiAction<? extends GuiBased> action)
     {
-        event.getPage().update();
+        String title = "";
+
+        if (!action.getArguments().isEmpty())
+            title = String.join(" ", action.getArguments());
+
+        event.getPage().setTitle(title);
     }
 }

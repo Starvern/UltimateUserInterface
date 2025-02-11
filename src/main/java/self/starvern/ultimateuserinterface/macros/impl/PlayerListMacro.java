@@ -35,8 +35,6 @@ public class PlayerListMacro extends Macro
         String targetItemId = action.getArguments().get(0);
         String replacementItemId = action.getArguments().get(1);
 
-
-
         Optional<GuiItem> replacementItemOptional = page.getItem(replacementItemId);
 
         if (replacementItemOptional.isEmpty()) return;

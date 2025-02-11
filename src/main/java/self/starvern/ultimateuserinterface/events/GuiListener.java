@@ -350,20 +350,28 @@ public class GuiListener implements Listener
     public void GuiTickEvent(GuiTickEvent event)
     {
         GuiPage page = event.getPage();
-        page.execute(event);
+        Inventory inventory = page.getInventory();
+
+        for (int index = 0; index < inventory.getSize(); index++)
+        {
+            Optional<SlottedGuiItem> optionalItem = page.getItemAt(index);
+            if (optionalItem.isEmpty()) continue;
+
+            SlottedGuiItem item = optionalItem.get();
+            ItemStack inventoryItem = inventory.getItem(index);
+
+            String type = (inventoryItem == null) ? Material.AIR.toString() : inventoryItem.getType().toString();
+            String rawAmount = (inventoryItem == null) ? "0" : String.valueOf(inventoryItem.getAmount());
+            item.getItemConfig().setRawMaterial(type);
+            item.getItemConfig().setRawAmount(rawAmount);
+        }
+
         // Assigned to prevent ConcurrentModificationException
         List<SlottedGuiItem> items = new ArrayList<>(page.getSlottedItems());
+
         for (SlottedGuiItem item : items)
-        {
-            /*
-             *  We must set the items in order to prevent any possible
-             *  duplication glitches upon ticking.
-             */
-            ItemStack invItem = event.getPage().getInventory().getItem(item.getSlot());
-            if (invItem == null) invItem = new ItemStack(Material.AIR);
-            item.setItemStack(invItem);
             item.execute(event);
-        }
+        page.execute(event);
         page.update();
     }
 

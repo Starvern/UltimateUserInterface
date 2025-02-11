@@ -5,12 +5,6 @@ import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
-import self.starvern.ultimateuserinterface.lib.GuiItem;
-import self.starvern.ultimateuserinterface.lib.GuiPage;
-
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 public abstract class Macro
 {

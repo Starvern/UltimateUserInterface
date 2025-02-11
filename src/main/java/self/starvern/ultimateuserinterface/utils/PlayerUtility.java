@@ -13,7 +13,7 @@ public class PlayerUtility
      */
     public static @Nullable OfflinePlayer getPlayer(String name)
     {
-        for (OfflinePlayer player : Bukkit.getOfflinePlayers())
+        for (OfflinePlayer player : Bukkit.getServer().getOfflinePlayers())
         {
             String playerName = player.getName();
             if (playerName != null && playerName.equalsIgnoreCase(name))

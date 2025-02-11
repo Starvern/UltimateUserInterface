@@ -1,6 +1,7 @@
 package self.starvern.ultimateuserinterface.properties;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.properties.impl.DoubleProperty;
 import self.starvern.ultimateuserinterface.properties.impl.IntegerProperty;
@@ -96,19 +97,19 @@ public class GuiProperties<T extends GuiBased>
     /**
      * Parses nested placeholders up to 5 times.
      * @param input The string to parse.
-     * @return The parsed string.
+     * @return The parsed string, or null if input is null.
      * @since 0.5.0
      */
-    public String parsePropertyPlaceholders(String input)
+    public @Nullable String parsePropertyPlaceholders(String input)
     {
-        if (input == null) return input;
+        if (input == null) return null;
         String output = input;
         int index = 0;
 
         while (index < 5 && containsPlaceholders(output))
         {
             for (GuiProperty<?> property : this.properties)
-                output = output.replace(property.toString(), property.getValue().toString());
+                output = property.parsePlaceholders(output);
             index++;
         }
 
@@ -118,12 +119,12 @@ public class GuiProperties<T extends GuiBased>
     /**
      * Parses nested placeholders up to 5 times.
      * @param inputs The strings to parse.
-     * @return The parsed strings.
+     * @return The parsed strings, or null if inputs is null.
      * @since 0.5.0
      */
-    public List<String> parsePropertyPlaceholders(List<String> inputs)
+    public @Nullable List<String> parsePropertyPlaceholders(List<String> inputs)
     {
-        if (inputs == null) return inputs;
+        if (inputs == null) return null;
         List<String> outputs = new ArrayList<>();
         for (String input : inputs)
             outputs.add(parsePropertyPlaceholders(input));

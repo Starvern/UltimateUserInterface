@@ -1,79 +1,51 @@
 package self.starvern.ultimateuserinterface.commands;
 
-import com.google.common.collect.MultimapBuilder;
-import org.bukkit.Material;
-import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
+import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.UUIPlugin;
 import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiArgument;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
-import self.starvern.ultimateuserinterface.macros.Macro;
 import self.starvern.ultimateuserinterface.properties.GuiProperty;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
-public class InterfaceCommand implements CommandExecutor
+public class GuiCommandExecutor extends Command implements PluginIdentifiableCommand
 {
+    private final UUI api;
     private final UUIPlugin plugin;
 
-    public InterfaceCommand(UUIPlugin plugin)
+    public GuiCommandExecutor(UUI api, @NotNull String name)
     {
-        this.plugin = plugin;
-        PluginCommand command = plugin.getCommand("interface");
-        if (command == null)
-        {
-            plugin.getLogger().severe("Invalid plugin.yml. Please re-install the plugin.");
-            return;
-        }
-        command.setTabCompleter(new InterfaceCommandCompleter(this.plugin));
-        command.setExecutor(this);
+        super(name);
+        this.api = api;
+        this.plugin = this.api.getPlugin();
+        List<String> guiNames = this.api.getGuiManager().getGuis().stream()
+                .filter(Gui::registerAlias).map(Gui::getId).toList();
+        this.setAliases(guiNames);
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
-                             @NotNull String[] args)
+    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args)
     {
-        if (!sender.hasPermission("uui.command.interface"))
+        if (!sender.hasPermission("uui.alias." + commandLabel))
         {
             sender.sendMessage("Insufficient permission.");
             return false;
         }
 
-        if (args.length == 0)
+        if (commandLabel.equalsIgnoreCase("uui"))
         {
-            sender.sendMessage("You need to specify a gui name");
-            return false;
-        }
-
-        if (args[0].equalsIgnoreCase("reload"))
-        {
-            if (!sender.hasPermission("uui.command.interface.reload"))
-            {
-                sender.sendMessage("Insufficient permission.");
-                return false;
-            }
-
-            sender.sendMessage("Reloaded UltimateUserInterface.");
-            plugin.load();
+            sender.sendMessage("UltimateUserInterface by Starvern");
             return true;
-        }
-
-        if (args[0].equalsIgnoreCase("list"))
-        {
-            for (Macro macro : this.plugin.getApi().getMacroManager().getMacros())
-            {
-                sender.sendMessage(macro.toString());
-            }
         }
 
         if (!(sender instanceof Player player))
@@ -82,7 +54,7 @@ public class InterfaceCommand implements CommandExecutor
             return false;
         }
 
-        Optional<Gui> guiOptional = plugin.getApi().getGuiManager().getGui(args[0]);
+        Optional<Gui> guiOptional = this.plugin.getApi().getGuiManager().getGui(commandLabel);
         if (guiOptional.isEmpty())
         {
             player.sendMessage("Gui not found");
@@ -104,14 +76,14 @@ public class InterfaceCommand implements CommandExecutor
 
             String value = argument.getDefaultValue();
 
-            if (args.length <= i+1 && argument.isRequired())
+            if (args.length <= i && argument.isRequired())
             {
                 player.sendMessage("Specify argument: " + argument.getId());
                 return false;
             }
 
-            if (args.length > i+1)
-                value = args[i+1];
+            if (args.length > i)
+                value = args[i];
 
             argument.setValue(PlaceholderAPIHook.parse(player, page.getProperties().parsePropertyPlaceholders(value)));
 
@@ -127,8 +99,13 @@ public class InterfaceCommand implements CommandExecutor
             }
         }
 
-
         page.open(player);
         return true;
+    }
+
+    @Override
+    public @NotNull UUIPlugin getPlugin()
+    {
+        return this.api.getPlugin();
     }
 }

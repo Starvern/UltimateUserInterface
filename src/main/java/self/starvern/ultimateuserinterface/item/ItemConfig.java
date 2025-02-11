@@ -1,7 +1,11 @@
 package self.starvern.ultimateuserinterface.item;
 
+import com.google.common.collect.MultimapBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Registry;
@@ -22,8 +26,11 @@ import self.starvern.ultimateuserinterface.managers.ChatManager;
 import self.starvern.ultimateuserinterface.properties.GuiProperties;
 import self.starvern.ultimateuserinterface.utils.PlayerUtility;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -42,7 +49,7 @@ public class ItemConfig implements Serializable
     private final String name;
     private String rawMaterial;
     private final List<String> lore;
-    private final String rawAmount;
+    private String rawAmount;
 
     private final @Nullable String texture;
     private final @Nullable String playerName;
@@ -69,6 +76,15 @@ public class ItemConfig implements Serializable
 
         this.enchantmentSection = section.getConfigurationSection("enchantments");
         this.itemFlags = section.getStringList("flags");
+    }
+
+    /**
+     * @param rawAmount The amount to set to.
+     * @since 0.6.0
+     */
+    public void setRawAmount(String rawAmount)
+    {
+        this.rawAmount = rawAmount;
     }
 
     /**
@@ -215,6 +231,7 @@ public class ItemConfig implements Serializable
             }
             catch (IllegalArgumentException ignored)
             {
+                this.item.getGui().getLogger().warning("Invalid item flag: " + flagName);
             }
         }
 
@@ -278,6 +295,44 @@ public class ItemConfig implements Serializable
     }
 
     /**
+     * Sets a base64 texture onto an item.
+     * @param itemMeta The meta to set onto.
+     * @param playerName The player's name to parse.
+     * @since 0.5.0
+     */
+    public void parsePlayerHead(ItemMeta itemMeta, String playerName)
+    {
+        if (playerName == null) return;
+
+        GameProfile profile = new GameProfile(UUID.randomUUID(), playerName);
+
+        String idUrl = "https://api.mojang.com/users/profiles/minecraft/" + playerName;
+        try {
+            URL url = new URL(idUrl);
+            InputStreamReader reader = new InputStreamReader(url.openStream());
+            JsonObject data = JsonParser.parseReader(reader).getAsJsonObject();
+
+            URL url_1 = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + data.get("id").getAsString() + "?unsigned=false");
+
+            InputStreamReader reader_1 = new InputStreamReader(url_1.openStream());
+            JsonObject textureProperty = JsonParser.parseReader(reader_1).getAsJsonObject().get("properties").getAsJsonArray().get(0).getAsJsonObject();
+            String texture = textureProperty.get("value").getAsString();
+            String signature = textureProperty.get("signature").getAsString();
+
+            Property prop = new Property("textures", texture, signature);
+            profile.getProperties().put("textures", prop);
+
+            Field profileField = itemMeta.getClass().getDeclaredField("profile");
+            profileField.setAccessible(true);
+            profileField.set(itemMeta, profile);
+        }
+        catch (NoSuchFieldException | IllegalAccessException | IOException exception)
+        {
+            this.api.getPlugin().getLogger().warning("Failed to parse player texture: " + playerName);
+        }
+    }
+
+    /**
      * Compares two lists.
      * @param first The first list.
      * @param second The second list to compare against.
@@ -306,15 +361,20 @@ public class ItemConfig implements Serializable
         if (itemMeta == null) return;
 
         String playerName = PlaceholderAPIHook.parse(player, this.parseAllPlaceholders(this.playerName));
+        boolean playerUnknown = false;
 
         if (playerName != null)
         {
             OfflinePlayer targetPlayer = PlayerUtility.getPlayer(playerName);
             if (targetPlayer != null)
+            {
                 player = targetPlayer;
+                if (!player.isOnline())
+                    playerUnknown = true;
+            }
             if (targetPlayer == null && !this.item.getProperties().containsPlaceholders(playerName)
                     && !PlaceholderAPIHook.containsPlaceholders(playerName))
-                item.getGui().getLogger().warning("Player (" + playerName + ") is unknown.");
+                playerUnknown = true;
         }
 
         String name = PlaceholderAPIHook.parse(player, this.parseAllPlaceholders(this.name));
@@ -338,8 +398,15 @@ public class ItemConfig implements Serializable
 
         if (itemStack.getType().equals(Material.PLAYER_HEAD))
         {
-            if (playerName != null)
-                ((SkullMeta) itemMeta).setOwningPlayer(PlayerUtility.getPlayer(playerName));
+            ((SkullMeta) itemMeta).setOwningPlayer(player);
+
+            if (playerUnknown)
+                Bukkit.getScheduler().runTaskAsynchronously(this.api.getPlugin(), () -> {
+                    this.parsePlayerHead(itemMeta, playerName);
+                    itemStack.setItemMeta(itemMeta);
+                    this.item.getPage().update();
+                });
+
             if (hdbId != null && HeadDatabaseHook.getApi() != null)
                 texture = HeadDatabaseHook.getApi().getBase64(hdbId);
             if (texture != null)
@@ -351,6 +418,7 @@ public class ItemConfig implements Serializable
             itemMeta.addEnchant(enchantment, enchantments.get(enchantment), true);
 
         itemMeta.addItemFlags(this.getItemFlags().toArray(new ItemFlag[0]));
+        itemMeta.setAttributeModifiers(MultimapBuilder.hashKeys().hashSetValues().build());
 
         itemMeta.setDisplayName(ChatManager.colorize(name));
         itemMeta.setLore(ChatManager.colorize(lore));

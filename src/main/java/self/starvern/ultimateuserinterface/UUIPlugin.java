@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import self.starvern.ultimateuserinterface.commands.InterfaceCommand;
 import self.starvern.ultimateuserinterface.events.GuiListener;
 import self.starvern.ultimateuserinterface.hooks.HeadDatabaseHook;
+import self.starvern.ultimateuserinterface.commands.GuiCommandExecutor;
 import self.starvern.ultimateuserinterface.macros.impl.*;
 
 import java.io.File;
@@ -25,6 +26,10 @@ public class UUIPlugin extends JavaPlugin
 
         if (HeadDatabaseHook.isInstalled())
             HeadDatabaseHook.registerListener(this.api);
+
+        if (this.api.getCommandManager().getCommandMap() != null)
+            this.api.getCommandManager().getCommandMap()
+                    .register("uui", new GuiCommandExecutor(this.api, "uui"));
     }
 
     @Override
@@ -61,6 +66,7 @@ public class UUIPlugin extends JavaPlugin
         // Item Management
         new SetItemMacro(this.api, this).register();
         new SetPropertyMacro(this.api, this).register();
+        new SetTitleMacro(this.api, this).register();
 
         // Conditions
         new PermissionCheckMacro(this.api, this).register();

@@ -26,6 +26,7 @@ public class Gui
     private final List<GuiPage> pages;
     private final Set<GuiSession> sessions;
     private final Logger logger;
+    private final boolean registerAlias;
 
     public Gui(UUI api, File file)
     {
@@ -39,6 +40,16 @@ public class Gui
         this.pages = new ArrayList<>();
         this.sessions = new HashSet<>();
         this.logger = Logger.getLogger("UUI::" + this.id + ".yml");
+        this.registerAlias = this.config.getBoolean("register_alias", false);
+    }
+
+    /**
+     * @return True, to register the GUI's alias.
+     * @since 0.6.0
+     */
+    public boolean registerAlias()
+    {
+        return this.registerAlias;
     }
 
     /**
