@@ -3,11 +3,13 @@ package self.starvern.ultimateuserinterface.macros.impl;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiCustomEvent;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
+import self.starvern.ultimateuserinterface.lib.SlottedGuiItem;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 
@@ -74,7 +76,20 @@ public class PlaceholderCompareNumberMacro extends Macro
                     .warning("[comparePlaceholderStr] Invalid number comparison (" + comparison + ").");
         }
 
-        GuiCustomEvent passEvent = new GuiCustomEvent(event.getHuman(), event.getPage(), (value) ? passId : failId);
-        Bukkit.getPluginManager().callEvent(passEvent);
+        String eventId = value ? passId : failId;
+        @Nullable SlottedGuiItem item = null;
+
+        if (action.getHolder() instanceof SlottedGuiItem itemBuffer)
+            item = itemBuffer;
+
+        GuiCustomEvent customEvent = new GuiCustomEvent(
+                event.getHuman(),
+                event.getPage(),
+                eventId.replace("page::", ""),
+                eventId.startsWith("page::") ? GuiCustomEvent.Type.PAGE: GuiCustomEvent.Type.ITEM,
+                item
+        );
+
+        Bukkit.getPluginManager().callEvent(customEvent);
     }
 }

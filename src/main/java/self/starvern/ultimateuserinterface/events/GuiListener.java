@@ -378,9 +378,16 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiCustomEvent(GuiCustomEvent event)
     {
-        event.getPage().execute(event);
+        if (event.getType().equals(GuiCustomEvent.Type.PAGE))
+        {
+            event.getPage().execute(event);
 
-        for (GuiItem item : new ArrayList<>(event.getPage().getSlottedItems()))
-            item.execute(event);
+            for (GuiItem item : new ArrayList<>(event.getPage().getSlottedItems()))
+                item.execute(event);
+            return;
+        }
+
+        if (event.getItem() != null)
+            event.getItem().execute(event);
     }
 }
