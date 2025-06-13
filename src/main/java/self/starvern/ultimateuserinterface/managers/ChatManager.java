@@ -19,6 +19,8 @@ public class ChatManager
      */
     public static List<String> colorize(List<String> list)
     {
+        if (list == null) return null;
+
         List<String> newList = new ArrayList<>();
 
         for (String line : list)
@@ -37,6 +39,7 @@ public class ChatManager
      */
     public static String colorize(String string)
     {
+        if (string == null) return null;
         StringBuffer hexString = parseSingle(parseDouble(parseTriple(new StringBuffer(string))));
 
         return ChatColor.translateAlternateColorCodes('&', hexString.toString());

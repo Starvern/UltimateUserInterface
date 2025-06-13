@@ -366,10 +366,17 @@ public class GuiListener implements Listener
             SlottedGuiItem item = optionalItem.get();
             ItemStack inventoryItem = inventory.getItem(index);
 
-            String type = (inventoryItem == null) ? Material.AIR.toString() : inventoryItem.getType().toString();
-            String rawAmount = (inventoryItem == null) ? "0" : String.valueOf(inventoryItem.getAmount());
-            item.getItemConfig().setRawMaterial(type);
-            item.getItemConfig().setRawAmount(rawAmount);
+            if (inventoryItem == null)
+            {
+                String type =  Material.AIR.toString();
+                String rawAmount = "0";
+
+                item.getItemConfig().setRawMaterial(type);
+                item.getItemConfig().setRawAmount(rawAmount);
+                continue;
+            }
+
+            item.getItemConfig().copyOf(inventoryItem);
         }
     }
 

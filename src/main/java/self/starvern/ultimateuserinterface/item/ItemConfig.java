@@ -67,10 +67,7 @@ public class ItemConfig implements Serializable
         this.item = item;
         this.api = item.getApi();
         this.section = item.getSection();
-        this.name = section.getString("name", "");
-        this.rawMaterial = section.getString("material", "AIR");
-        this.lore = section.getStringList("lore");
-        this.rawAmount = section.getString("amount", "1");
+        this.restore();
 
         this.texture = section.getString("texture");
         this.hdbId = section.getString("hdb");
@@ -91,6 +88,19 @@ public class ItemConfig implements Serializable
     }
 
     /**
+     * Restores the item back to the original.
+     * @since 0.6.2
+     */
+    public void restore()
+    {
+        this.name = section.getString("name", "");
+        this.rawMaterial = section.getString("material", "AIR");
+        this.lore = section.getStringList("lore");
+        this.rawAmount = section.getString("amount", "1");
+        this.container = null;
+    }
+
+    /**
      * Copies the {@link ItemMeta} of the given item.
      * @param itemStack The {@link ItemStack} to copy.
      * @since 0.6.2
@@ -99,7 +109,13 @@ public class ItemConfig implements Serializable
     {
         ItemMeta itemMeta = itemStack.getItemMeta();
         if (itemMeta == null)
+        {
+            this.name = null;
+            this.rawMaterial = "AIR";
+            this.rawAmount = "0";
+            this.lore = null;
             return;
+        }
 
         this.name = itemMeta.getDisplayName();
         this.lore = itemMeta.getLore();
