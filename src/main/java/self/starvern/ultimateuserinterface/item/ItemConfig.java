@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
@@ -46,10 +47,12 @@ public class ItemConfig implements Serializable
     private final GuiItem item;
     private final ConfigurationSection section;
 
-    private final String name;
+    private String name;
     private String rawMaterial;
-    private final List<String> lore;
+    private List<String> lore;
     private String rawAmount;
+
+    private PersistentDataContainer container;
 
     private final @Nullable String texture;
     private final @Nullable String playerName;
@@ -85,6 +88,24 @@ public class ItemConfig implements Serializable
     public void setRawAmount(String rawAmount)
     {
         this.rawAmount = rawAmount;
+    }
+
+    /**
+     * Copies the {@link ItemMeta} of the given item.
+     * @param itemStack The {@link ItemStack} to copy.
+     * @since 0.6.2
+     */
+    public void copyOf(ItemStack itemStack)
+    {
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null)
+            return;
+
+        this.name = itemMeta.getDisplayName();
+        this.lore = itemMeta.getLore();
+        this.rawMaterial = itemStack.getType().toString();
+        this.rawAmount = String.valueOf(itemStack.getAmount());
+        this.container = itemMeta.getPersistentDataContainer();
     }
 
     /**
@@ -419,6 +440,9 @@ public class ItemConfig implements Serializable
 
         itemMeta.addItemFlags(this.getItemFlags().toArray(new ItemFlag[0]));
         itemMeta.setAttributeModifiers(MultimapBuilder.hashKeys().hashSetValues().build());
+
+        if (this.container != null)
+            this.container.copyTo(itemMeta.getPersistentDataContainer(), true);
 
         itemMeta.setDisplayName(ChatManager.colorize(name));
         itemMeta.setLore(ChatManager.colorize(lore));

@@ -327,7 +327,10 @@ public class GuiListener implements Listener
     @EventHandler
     public void GuiCloseEvent(GuiCloseEvent event)
     {
-        event.getPage().execute(event);
+        GuiPage page = event.getPage();
+        this.enforceItems(page);
+
+        page.execute(event);
         ItemUtility.removeUUID(this.api, event.getHuman().getItemOnCursor());
 
         for (ItemStack item : event.getHuman().getInventory().getContents())
@@ -336,7 +339,7 @@ public class GuiListener implements Listener
             ItemUtility.removeUUID(this.api, item);
         }
 
-        for (GuiItem item : event.getPage().getItems())
+        for (GuiItem item : page.getItems())
             item.execute(event);
 
         for (GuiSession session : event.getGui().getSessions())
@@ -346,10 +349,13 @@ public class GuiListener implements Listener
         }
     }
 
-    @EventHandler
-    public void GuiTickEvent(GuiTickEvent event)
+    /**
+     * Checks all items and sets them to prevent duplication.
+     * @param page The page to enforce.
+     * @since 0.6.1
+     */
+    private void enforceItems(GuiPage page)
     {
-        GuiPage page = event.getPage();
         Inventory inventory = page.getInventory();
 
         for (int index = 0; index < inventory.getSize(); index++)
@@ -365,6 +371,13 @@ public class GuiListener implements Listener
             item.getItemConfig().setRawMaterial(type);
             item.getItemConfig().setRawAmount(rawAmount);
         }
+    }
+
+    @EventHandler
+    public void GuiTickEvent(GuiTickEvent event)
+    {
+        GuiPage page = event.getPage();
+        this.enforceItems(page);
 
         // Assigned to prevent ConcurrentModificationException
         List<SlottedGuiItem> items = new ArrayList<>(page.getSlottedItems());
