@@ -1,5 +1,6 @@
 package self.starvern.ultimateuserinterface.properties;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
@@ -30,6 +31,19 @@ public class GuiProperties<T extends GuiBased>
     public List<GuiProperty<?>> getProperties()
     {
         return this.properties;
+    }
+
+    /**
+     * Copies all properties.
+     * @param properties The properties to add.
+     * @param clear True, to clear existing properties.
+     * @since 0.6.2
+     */
+    public void copy(GuiProperties<T> properties, boolean clear)
+    {
+        if (clear)
+            this.properties.clear();
+        this.properties.addAll(properties.getProperties());
     }
 
     /**
@@ -79,6 +93,23 @@ public class GuiProperties<T extends GuiBased>
             this.properties.remove(oldProperty);
 
         this.properties.add(property);
+    }
+
+    /**
+     * Removes a property with the given key.
+     * @param key The key to check.
+     * @since 0.6.2
+     */
+    public void removeProperty(String key)
+    {
+        for (GuiProperty<?> property : this.properties)
+        {
+            if (property.getKey().equalsIgnoreCase(key))
+            {
+                this.properties.remove(property);
+                return;
+            }
+        }
     }
 
     /**

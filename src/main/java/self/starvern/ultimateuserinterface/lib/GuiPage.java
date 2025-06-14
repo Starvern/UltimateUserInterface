@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
@@ -253,14 +254,19 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
             {
                 String parsedTitle = PlaceholderAPIHook
                         .parse(player, this.properties.parsePropertyPlaceholders(this.title));
-                viewer.getOpenInventory()
-                        .setTitle(ChatManager.colorize(parsedTitle));
+                //viewer.getOpenInventory()
+                        //.setTitle(ChatManager.colorize(parsedTitle));
             } catch (RuntimeException ignored) {
             }
 
             for (SlottedGuiItem item : this.slottedItems)
             {
+                if (item.getActions().isEmpty())
+                    continue;
                 item.updateItem(player);
+                ItemStack inventoryItem = inventory.getItem(item.getSlot());
+                if (inventoryItem != null && !inventoryItem.getType().isAir())
+                    inventoryItem.setItemMeta(item.getItemStack().getItemMeta());
                 inventory.setItem(item.getSlot(), item.getItemStack());
             }
         }
@@ -365,6 +371,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     {
         return slottedItems.stream()
                 .filter(item -> item.getId().equalsIgnoreCase(character))
+                .sorted((one, two) -> Math.max(one.getSlot(), two.getSlot()))
                 .collect(Collectors.toList());
     }
 
@@ -387,7 +394,10 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
                     .filter(i -> i.getSlot() == item.getSlot())
                     .findFirst();
 
-            possibleItem.ifPresent(slottedItems::remove);
+            possibleItem.ifPresent((guiItem) -> {
+                slottedItems.remove(guiItem);
+                item.getProperties().copy(guiItem.getProperties(), false);
+            });
         }
 
         this.slottedItems.add(item);

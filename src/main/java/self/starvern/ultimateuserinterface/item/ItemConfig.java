@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -44,15 +45,15 @@ import java.util.*;
 public class ItemConfig implements Serializable
 {
     private final UUI api;
-    private final GuiItem item;
-    private final ConfigurationSection section;
+    private final String name;
+    private final List<String> lore;
 
-    private String name;
     private String rawMaterial;
-    private List<String> lore;
     private String rawAmount;
 
-    private PersistentDataContainer container;
+    private @Nullable GuiItem item;
+    private @Nullable ConfigurationSection section;
+    private @Nullable PersistentDataContainer container;
 
     private final @Nullable String texture;
     private final @Nullable String playerName;
@@ -62,12 +63,46 @@ public class ItemConfig implements Serializable
     private final ConfigurationSection enchantmentSection;
     private final List<String> itemFlags;
 
+    public ItemConfig(UUI api, ItemStack item)
+    {
+        this.api = api;
+        ItemMeta itemMeta = item.getItemMeta();
+        this.enchantmentSection = new YamlConfiguration();
+
+        if (itemMeta != null)
+        {
+            this.name = itemMeta.getDisplayName();
+            this.lore = itemMeta.getLore();
+            this.customModelData = String.valueOf(itemMeta.getCustomModelData());
+            for (Map.Entry<Enchantment, Integer> entry : itemMeta.getEnchants().entrySet())
+                this.enchantmentSection.set(entry.getKey().getKey().getKey(), entry.getValue());
+            this.itemFlags = itemMeta.getItemFlags().stream().map(ItemFlag::name).toList();
+        }
+        else
+        {
+            this.name = "";
+            this.lore = new ArrayList<>();
+            this.customModelData = null;
+            this.itemFlags = new ArrayList<>();
+        }
+
+        this.rawMaterial = item.getType().toString();
+        this.rawAmount = String.valueOf(item.getAmount());
+        this.texture = null;
+        this.playerName = null;
+        this.hdbId = null;
+
+    }
+
     public ItemConfig(GuiItem item)
     {
         this.item = item;
         this.api = item.getApi();
         this.section = item.getSection();
-        this.restore();
+        this.name = section.getString("name", "");
+        this.rawMaterial = section.getString("material", "AIR");
+        this.lore = section.getStringList("lore");
+        this.rawAmount = section.getString("amount", "1");
 
         this.texture = section.getString("texture");
         this.hdbId = section.getString("hdb");
@@ -88,48 +123,13 @@ public class ItemConfig implements Serializable
     }
 
     /**
-     * Restores the item back to the original.
-     * @since 0.6.2
-     */
-    public void restore()
-    {
-        this.name = section.getString("name", "");
-        this.rawMaterial = section.getString("material", "AIR");
-        this.lore = section.getStringList("lore");
-        this.rawAmount = section.getString("amount", "1");
-        this.container = null;
-    }
-
-    /**
-     * Copies the {@link ItemMeta} of the given item.
-     * @param itemStack The {@link ItemStack} to copy.
-     * @since 0.6.2
-     */
-    public void copyOf(ItemStack itemStack)
-    {
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        if (itemMeta == null)
-        {
-            this.name = null;
-            this.rawMaterial = "AIR";
-            this.rawAmount = "0";
-            this.lore = null;
-            return;
-        }
-
-        this.name = itemMeta.getDisplayName();
-        this.lore = itemMeta.getLore();
-        this.rawMaterial = itemStack.getType().toString();
-        this.rawAmount = String.valueOf(itemStack.getAmount());
-        this.container = itemMeta.getPersistentDataContainer();
-    }
-
-    /**
      * @return A new ItemConfig with all the same values.
      * @since 0.5.0
      */
     public ItemConfig copy()
     {
+        if (item == null)
+            return new ItemConfig(this.api, this.buildItem());
         return new ItemConfig(this.item);
     }
 
@@ -268,7 +268,8 @@ public class ItemConfig implements Serializable
             }
             catch (IllegalArgumentException ignored)
             {
-                this.item.getGui().getLogger().warning("Invalid item flag: " + flagName);
+                if (item != null)
+                    this.item.getGui().getLogger().warning("Invalid item flag: " + flagName);
             }
         }
 
@@ -283,6 +284,9 @@ public class ItemConfig implements Serializable
      */
     public String parseAllPlaceholders(String input)
     {
+        if (item == null)
+            return input;
+
         GuiProperties<GuiItem> itemProperties = this.item.getProperties();
         GuiProperties<GuiPage> pageProperties = this.item.getPage().getProperties();
 
@@ -299,6 +303,9 @@ public class ItemConfig implements Serializable
      */
     public List<String> parseAllPlaceholders(List<String> input)
     {
+        if (item == null)
+            return input;
+
         GuiProperties<GuiItem> itemProperties = this.item.getProperties();
         GuiProperties<GuiPage> pageProperties = this.item.getPage().getProperties();
 
@@ -409,7 +416,7 @@ public class ItemConfig implements Serializable
                 if (!player.isOnline())
                     playerUnknown = true;
             }
-            if (targetPlayer == null && !this.item.getProperties().containsPlaceholders(playerName)
+            if (item != null && targetPlayer == null && !this.item.getProperties().containsPlaceholders(playerName)
                     && !PlaceholderAPIHook.containsPlaceholders(playerName))
                 playerUnknown = true;
         }
@@ -430,10 +437,11 @@ public class ItemConfig implements Serializable
         }
         catch (NumberFormatException exception)
         {
-            item.getGui().getLogger().warning("custom_model_data doesn't parse to a number.");
+            if (item != null)
+                item.getGui().getLogger().warning("custom_model_data doesn't parse to a number.");
         }
 
-        if (itemStack.getType().equals(Material.PLAYER_HEAD))
+        if (item != null && itemStack.getType().equals(Material.PLAYER_HEAD))
         {
             ((SkullMeta) itemMeta).setOwningPlayer(player);
 
@@ -488,7 +496,9 @@ public class ItemConfig implements Serializable
         }
         catch (NumberFormatException e)
         {
-            this.api.getLogger().warning("<" + this.item.getGui().getId() + ".yml> Amount does not parse to int.");
+            if (item != null)
+                this.api.getLogger()
+                        .warning("<" + this.item.getGui().getId() + ".yml> Amount does not parse to int.");
         }
 
         Material material = Material.matchMaterial(rawMaterial);

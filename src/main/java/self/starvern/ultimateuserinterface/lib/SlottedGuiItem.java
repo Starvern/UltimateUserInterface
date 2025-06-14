@@ -41,8 +41,8 @@ public class SlottedGuiItem extends GuiItem
     {
         ItemStack item = this.itemStack;
 
-        if (!this.actions.isEmpty())
-            ItemUtility.addUUID(this.api, item, uuid.toString());
+        //if (!this.actions.isEmpty())
+            //ItemUtility.addUUID(this.api, item, uuid.toString());
 
         return item;
     }
