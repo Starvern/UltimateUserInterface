@@ -261,7 +261,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
 
             for (SlottedGuiItem item : this.slottedItems)
             {
-                if (item.getActions().isEmpty())
+                if (item.getActions().isEmpty() || !item.doUpdate())
                     continue;
                 item.updateItem(player);
                 ItemStack inventoryItem = inventory.getItem(item.getSlot());

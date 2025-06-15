@@ -31,6 +31,7 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
     protected final GuiProperties<GuiItem> properties;
     protected final ItemConfig itemConfig;
     protected final ItemStack itemStack;
+    protected final boolean doUpdate;
 
     public GuiItem(UUI api, GuiPage page, String id)
     {
@@ -40,13 +41,24 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
         this.id = id;
         this.uuid = UUID.randomUUID();
         ConfigurationSection section = this.page.getGui().getConfig().getConfigurationSection(this.id);
-        if (section== null) section = this.page.getConfig().createSection(this.id);
+        if (section == null) section = this.page.getConfig().createSection(this.id);
         this.section = section;
         this.properties = new GuiProperties<>(this);
         this.properties.loadProperties();
         this.itemConfig = new ItemConfig(this);
         this.itemStack = this.itemConfig.buildItem();
+        this.doUpdate = section.getBoolean("update_item", true);
         this.loadActions();
+    }
+
+    /**
+     * Allows items the ability to be updated by the {@link GuiPage}
+     * @return True, if this item should be updated.
+     * @since 0.6.2
+     */
+    public boolean doUpdate()
+    {
+        return this.doUpdate;
     }
 
     /**
