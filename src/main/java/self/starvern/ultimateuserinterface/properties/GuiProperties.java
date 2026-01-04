@@ -1,9 +1,16 @@
 package self.starvern.ultimateuserinterface.properties;
 
-import org.bukkit.Bukkit;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
+import self.starvern.ultimateuserinterface.managers.ChatManager;
 import self.starvern.ultimateuserinterface.properties.impl.DoubleProperty;
 import self.starvern.ultimateuserinterface.properties.impl.IntegerProperty;
 import self.starvern.ultimateuserinterface.properties.impl.StringProperty;
@@ -120,45 +127,48 @@ public class GuiProperties<T extends GuiBased>
     public boolean containsPlaceholders(String input)
     {
         if (input == null) return false;
-        return Pattern.compile("[{](.*?)[}]", Pattern.CASE_INSENSITIVE)
+        return Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE)
                 .matcher(input)
                 .find();
     }
 
     /**
-     * Parses nested placeholders up to 5 times.
      * @param input The string to parse.
-     * @return The parsed string, or null if input is null.
+     * @return The parsed {@link Component}
      * @since 0.5.0
      */
-    public @Nullable String parsePropertyPlaceholders(String input)
+    public Component parsePropertyPlaceholders(@NotNull String input, OfflinePlayer player)
     {
-        if (input == null) return null;
-        String output = input;
-        int index = 0;
+        List<TagResolver.Single> placeholdersList = new ArrayList<>();
 
-        while (index < 5 && containsPlaceholders(output))
+        for (GuiProperty<?> property : this.properties)
+            placeholdersList.addAll(property.getPlaceholders(player));
+
+        TagResolver.Single[] placeholders = placeholdersList.toArray(new TagResolver.Single[]{});
+
+        String output = input;
+        int i = 0;
+
+        while (containsPlaceholders(output) && i < 5)
         {
-            for (GuiProperty<?> property : this.properties)
-                output = property.parsePlaceholders(output);
-            index++;
+            i++;
+            output = ChatManager.decolorize(ChatManager.colorize(output, placeholders));
         }
 
-        return output;
+        return ChatManager.colorize(PlaceholderAPIHook.parse(player, output), placeholders);
     }
 
     /**
-     * Parses nested placeholders up to 5 times.
      * @param inputs The strings to parse.
-     * @return The parsed strings, or null if inputs is null.
+     * @return The parsed {@link Component}
      * @since 0.5.0
      */
-    public @Nullable List<String> parsePropertyPlaceholders(List<String> inputs)
+    public List<Component> parsePropertyPlaceholders(@NotNull List<String> inputs, OfflinePlayer player)
     {
-        if (inputs == null) return null;
-        List<String> outputs = new ArrayList<>();
+        List<Component> outputs = new ArrayList<>();
         for (String input : inputs)
-            outputs.add(parsePropertyPlaceholders(input));
+            outputs.add(parsePropertyPlaceholders(input, player));
+
         return outputs;
     }
 }

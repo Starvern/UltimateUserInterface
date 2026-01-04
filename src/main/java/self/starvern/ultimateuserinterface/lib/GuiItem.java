@@ -1,10 +1,12 @@
 package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
-import self.starvern.ultimateuserinterface.item.ItemConfig;
+import self.starvern.ultimateuserinterface.item.ItemTemplate;
 import self.starvern.ultimateuserinterface.macros.ActionTrigger;
 import self.starvern.ultimateuserinterface.macros.ActionType;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
@@ -29,11 +31,12 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
     protected final UUID uuid;
     protected final ConfigurationSection section;
     protected final GuiProperties<GuiItem> properties;
-    protected final ItemConfig itemConfig;
+    protected final ItemTemplate template;
     protected final ItemStack itemStack;
     protected final boolean doUpdate;
+    protected final Player player;
 
-    public GuiItem(UUI api, GuiPage page, String id)
+    public GuiItem(UUI api, GuiPage page, String id, Player player)
     {
         super();
         this.api = api;
@@ -45,10 +48,18 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
         this.section = section;
         this.properties = new GuiProperties<>(this);
         this.properties.loadProperties();
-        this.itemConfig = new ItemConfig(this);
-        this.itemStack = this.itemConfig.buildItem();
-        this.doUpdate = section.getBoolean("update_item", true);
+
+        this.template = new ItemTemplate(this);
+        this.itemStack = this.template.build(player);
+
+        this.doUpdate = section.getBoolean("update_item", false);
+        this.player = player;
         this.loadActions();
+    }
+
+    public Player getPlayer()
+    {
+        return this.player;
     }
 
     /**
@@ -80,12 +91,12 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
     }
 
     /**
-     * @return The config used to build its ItemStack.
-     * @since 0.5.0
+     * @return The template used to build its {@link ItemStack}.
+     * @since 0.6.3
      */
-    public ItemConfig getItemConfig()
+    public ItemTemplate getItemTemplate()
     {
-        return this.itemConfig;
+        return this.template;
     }
 
     /**
@@ -152,14 +163,14 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
      */
     private void setMacro(String action, ActionTrigger trigger)
     {
-        Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
-        if (optionalMacro.isEmpty())
+        @Nullable Macro macro = this.api.getMacroManager().getMacro(action);
+        if (macro == null)
         {
             this.api.getLogger()
                     .warning("<" + this.page.getGui().getId() + ".yml> Unknown macro used: " + action);
             return;
         }
-        this.addAction(new GuiAction<>(this, optionalMacro.get(), trigger, action));
+        this.addAction(new GuiAction<>(this, macro, trigger, action, this.player));
     }
 
     /**
@@ -170,7 +181,7 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
      */
     public SlottedGuiItem slot(int slot)
     {
-        SlottedGuiItem slottedItem = new SlottedGuiItem(this.api, this, slot);
+        SlottedGuiItem slottedItem = new SlottedGuiItem(this.api, this, slot, this.player);
         this.page.setItem(slottedItem);
         return slottedItem;
     }

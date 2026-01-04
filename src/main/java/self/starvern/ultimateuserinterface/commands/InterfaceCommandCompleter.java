@@ -27,11 +27,12 @@ public class InterfaceCommandCompleter implements TabCompleter
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
-                                      @NotNull String[] args)
+                                      @NotNull String @NotNull [] args)
     {
         GuiManager guiManager = plugin.getApi().getGuiManager();
-
         List<String> suggestions = new ArrayList<>();
+        /*
+
 
         if (!sender.hasPermission("uui.command.interface"))
             return suggestions;
@@ -59,6 +60,8 @@ public class InterfaceCommandCompleter implements TabCompleter
             for (Player player : Bukkit.getOnlinePlayers())
                 suggestions.add(player.getName());
         }
+
+         */
 
         return suggestions;
     }

@@ -26,7 +26,7 @@ public abstract class Macro
 
     public Plugin getPlugin()
     {
-        return plugin;
+        return this.plugin;
     }
 
     /**

@@ -1,9 +1,16 @@
 package self.starvern.ultimateuserinterface.managers;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+
 
 import java.awt.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -17,16 +24,13 @@ public class ChatManager
      * @return the colorized list
      * @since 0.1.0
      */
-    public static List<String> colorize(List<String> list)
+    public static List<Component> colorize(List<String> list)
     {
         if (list == null) return null;
-
-        List<String> newList = new ArrayList<>();
+        List<Component> newList = new ArrayList<>();
 
         for (String line : list)
-        {
             newList.add(colorize(line));
-        }
 
         return newList;
     }
@@ -37,12 +41,54 @@ public class ChatManager
      * @return the colorized string
      * @since 0.1.0
      */
-    public static String colorize(String string)
+    public static Component colorize(String string)
     {
         if (string == null) return null;
-        StringBuffer hexString = parseSingle(parseDouble(parseTriple(new StringBuffer(string))));
+        return colorize(string, new TagResolver[]{});
+    }
 
-        return ChatColor.translateAlternateColorCodes('&', hexString.toString());
+    /**
+     * Formats color to the string
+     * @param string the string to colorize
+     * @return the colorized string
+     * @since 0.1.0
+     */
+    public static Component colorize(String string, TagResolver... placeholders)
+    {
+        if (string == null) return null;
+
+        return MiniMessage.miniMessage()
+                .deserialize(string, placeholders)
+                .decoration(TextDecoration.ITALIC, false);
+    }
+
+    /**
+     * Returns a {@link MiniMessage} formatted {@link String}.
+     * @param components The components to deserialize
+     * @return The deserialized list of strings.
+     * @since 0.7.0
+     */
+    public static List<String> decolorize(List<Component> components)
+    {
+        if (components == null) return null;
+        List<String> newList = new ArrayList<>();
+
+        for (Component component : components)
+            newList.add(decolorize(component));
+
+        return newList;
+    }
+
+    /**
+     * Returns a {@link MiniMessage} formatted {@link String}.
+     * @param component The component to deserialize
+     * @return The deserialized string.
+     * @since 0.7.0
+     */
+    public static String decolorize(Component component)
+    {
+        return MiniMessage.miniMessage()
+                .serialize(component.decoration(TextDecoration.ITALIC, TextDecoration.State.NOT_SET));
     }
 
     /**

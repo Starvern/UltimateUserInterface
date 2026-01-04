@@ -5,6 +5,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -12,12 +13,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
-import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
+import self.starvern.ultimateuserinterface.item.ItemTemplate;
 import self.starvern.ultimateuserinterface.macros.ActionTrigger;
 import self.starvern.ultimateuserinterface.macros.ActionType;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
-import self.starvern.ultimateuserinterface.managers.ChatManager;
 import self.starvern.ultimateuserinterface.properties.GuiProperties;
 
 import java.io.File;
@@ -49,7 +49,9 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     private final GuiProperties<GuiPage> properties;
     private final List<GuiArgument> arguments;
 
-    protected GuiPage(UUI api, Gui gui, List<String> pattern)
+    private final Player player;
+
+    protected GuiPage(UUI api, Gui gui, List<String> pattern, Player player)
     {
         super();
         this.api = api;
@@ -65,8 +67,10 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
         this.inventory = Bukkit.createInventory(
                 this,
                 Math.min(9 * this.pattern.size(), 54),
-                ChatManager.colorize(this.properties.parsePropertyPlaceholders(this.title)));
+                this.properties.parsePropertyPlaceholders(this.title, player)
+        );
         this.arguments = new ArrayList<>();
+        this.player = player;
         this.loadActions();
         this.loadItems();
         this.loadArguments();
@@ -133,7 +137,7 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
      */
     public GuiPage duplicate()
     {
-        GuiPage page = new GuiPage(this.api, this.gui, this.pattern);
+        GuiPage page = new GuiPage(this.api, this.gui, this.pattern, player);
         page.loadItems();
         page.loadActions();
         page.getProperties().loadProperties();
@@ -159,12 +163,12 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
             if (section == null)
                 continue;
 
-            if (section.getString("material") != null)
-            {
-                GuiItem item = new GuiItem(api, this, key);
-                this.items.add(item);
-                keyItems.put(item.getId(), item);
-            }
+            if (key.length() != 1)
+                continue;
+
+            GuiItem item = new GuiItem(api, this, key, this.player);
+            this.items.add(item);
+            keyItems.put(item.getId(), item);
         }
 
         // Slots all registered GuiItems into SlottedGuiItems
@@ -230,14 +234,14 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
      */
     private void setMacro(String action, ActionTrigger trigger)
     {
-        Optional<Macro> optionalMacro = this.api.getMacroManager().getMacro(action);
-        if (optionalMacro.isEmpty())
+        @Nullable Macro macro = this.api.getMacroManager().getMacro(action);
+        if (macro == null)
         {
             this.api.getLogger()
                     .warning("<" + this.getGui().getId() + ".yml> Unknown macro used: " + action);
             return;
         }
-        this.addAction(new GuiAction<>(this, optionalMacro.get(), trigger, action));
+        this.addAction(new GuiAction<>(this, macro, trigger, action, player));
     }
 
     /**
@@ -248,22 +252,29 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     {
         for (HumanEntity viewer : this.inventory.getViewers())
         {
-            if (!(viewer instanceof OfflinePlayer player))
+            if (!(viewer instanceof OfflinePlayer offlinePlayer))
                 continue;
-            try
-            {
-                String parsedTitle = PlaceholderAPIHook
-                        .parse(player, this.properties.parsePropertyPlaceholders(this.title));
-                //viewer.getOpenInventory()
-                        //.setTitle(ChatManager.colorize(parsedTitle));
-            } catch (RuntimeException ignored) {
-            }
 
             for (SlottedGuiItem item : this.slottedItems)
             {
-                if (item.getActions().isEmpty() || !item.doUpdate())
+                if (item.getActions().isEmpty() && !item.doUpdate())
                     continue;
-                item.updateItem(player);
+
+                ItemStack itemStack = this.inventory.getItem(item.getSlot());
+
+                /*
+
+                if (itemStack != null) {
+                    item.getItemData().setRawAmount(String.valueOf(
+                            itemStack.getAmount()));
+                    item.getItemData().setRawMaterial(itemStack.getType().toString());
+                }
+                else {
+                    item.getItemData().setRawMaterial("AIR");
+                }
+                 */
+
+                item.updateItem(offlinePlayer);
                 ItemStack inventoryItem = inventory.getItem(item.getSlot());
                 if (inventoryItem != null && !inventoryItem.getType().isAir())
                     inventoryItem.setItemMeta(item.getItemStack().getItemMeta());
@@ -326,11 +337,14 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
      * @param slot The slot to check.
      * @return An Optional which, if present, contains the GuiItem.
      */
-    public Optional<SlottedGuiItem> getItemAt(int slot)
+    public @Nullable SlottedGuiItem getItemAt(int slot)
     {
-        return this.slottedItems.stream()
-                .filter(item -> item.getSlot() == slot)
-                .findFirst();
+        for (SlottedGuiItem item : this.slottedItems)
+        {
+            if (item.getSlot() == slot)
+                return item;
+        }
+        return null;
     }
 
     /**

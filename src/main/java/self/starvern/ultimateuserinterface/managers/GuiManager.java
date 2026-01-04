@@ -1,12 +1,14 @@
 package self.starvern.ultimateuserinterface.managers;
 
 import org.bukkit.inventory.Inventory;
+import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -33,9 +35,7 @@ public class GuiManager
     public Gui createGui(File file)
     {
         Gui gui = new Gui(this.api, file);
-
-        guis.add(gui);
-
+        this.guis.add(gui);
         return gui;
     }
 
@@ -45,8 +45,7 @@ public class GuiManager
      */
     public void loadGuis()
     {
-        guis.clear();
-
+        this.guis.clear();
         File folder = new File(this.api.getPlugin().getDataFolder(), "gui");
         loadFiles(folder.listFiles());
     }
@@ -64,7 +63,7 @@ public class GuiManager
         {
             if (file.isDirectory())
                 this.loadFiles(file.listFiles());
-            guis.add(new Gui(this.api, file).loadPages());
+            this.guis.add(new Gui(this.api, file));
         }
     }
 
@@ -74,7 +73,7 @@ public class GuiManager
      */
     public Set<Gui> getInstances()
     {
-        return instances;
+        return this.instances;
     }
 
     /**
@@ -82,18 +81,18 @@ public class GuiManager
      * @return A duplicated instance of GUI, or null.
      * @since 0.1.0
      */
-    public Optional<Gui> getGui(String id)
+    public @Nullable Gui getGui(String id)
     {
-        for (Gui gui : guis)
+        for (Gui gui : this.guis)
         {
             if (gui.getId().equalsIgnoreCase(id))
             {
                 Gui duplicatedGui = gui.duplicate();
-                instances.add(duplicatedGui);
-                return Optional.of(duplicatedGui);
+                this.instances.add(duplicatedGui);
+                return duplicatedGui;
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     /**
@@ -101,23 +100,20 @@ public class GuiManager
      * @return The GuiPage this inventory is owned by, or null
      * @since 0.1.0
      */
-    public Optional<GuiPage> getGuiPage(Inventory inventory)
+    public @Nullable GuiPage getGuiPage(Inventory inventory)
     {
-        if (inventory == null)
-            return Optional.empty();
+        if (inventory != null && inventory.getHolder() instanceof GuiPage)
+            return (GuiPage) inventory.getHolder();
 
-        if (inventory.getHolder() instanceof GuiPage)
-            return Optional.of((GuiPage) inventory.getHolder());
-
-        return Optional.empty();
+        return null;
     }
 
     /**
-     * @return A list of all loaded GUIs.
-     * @since 0.1.7
+     * @return A list of all loaded GUI ids.
+     * @since 0.7.0
      */
-    public Set<Gui> getGuis()
+    public List<String> getGuiIds()
     {
-        return guis;
+        return this.guis.stream().map(Gui::getId).toList();
     }
 }

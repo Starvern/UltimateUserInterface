@@ -1,11 +1,11 @@
 package self.starvern.ultimateuserinterface.lib;
 
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
-import self.starvern.ultimateuserinterface.item.ItemConfig;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.utils.ItemUtility;
 
@@ -16,21 +16,13 @@ import self.starvern.ultimateuserinterface.utils.ItemUtility;
 public class SlottedGuiItem extends GuiItem
 {
     private final int slot;
-    private final ItemConfig itemConfig;
     private ItemStack itemStack;
 
-    public SlottedGuiItem(UUI api, GuiItem item, int slot)
+    public SlottedGuiItem(UUI api, GuiItem item, int slot, Player player)
     {
-        super(api, item.getPage(), item.getId());
+        super(api, item.getPage(), item.getId(), player);
         this.slot = slot;
         this.itemStack = super.getItemStack();
-        this.itemConfig = super.getItemConfig().copy();
-    }
-
-    @Override
-    public ItemConfig getItemConfig()
-    {
-        return this.itemConfig;
     }
 
     /**
@@ -54,7 +46,7 @@ public class SlottedGuiItem extends GuiItem
      */
     public void updateItem(OfflinePlayer player)
     {
-        this.setItemStack(this.itemConfig.buildItem(player));
+        this.setItemStack(this.template.build(player));
         this.loadActions();
         for (GuiAction<GuiItem> action : this.actions)
             action.setArguments(PlaceholderAPIHook.parse(player, action.getArguments()));

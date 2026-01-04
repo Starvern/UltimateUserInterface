@@ -24,7 +24,7 @@ public class CustomEventMacro extends Macro
         if (action.getArguments().isEmpty()) return;
 
         GuiCustomEvent.Type type = GuiCustomEvent.Type.ITEM;
-        String id = action.getArguments().get(0);
+        String id = action.getArguments().getFirst();
 
         if (id.startsWith("page::"))
         {

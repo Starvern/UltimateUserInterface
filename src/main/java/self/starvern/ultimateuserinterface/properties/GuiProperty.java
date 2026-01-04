@@ -1,9 +1,12 @@
 package self.starvern.ultimateuserinterface.properties;
 
-import org.bukkit.Bukkit;
-import org.jetbrains.annotations.Nullable;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 
-import java.util.Map;
+import java.util.List;
 
 public class GuiProperty<T>
 {
@@ -47,34 +50,15 @@ public class GuiProperty<T>
      * @return All placeholders this property can provide. {key} by default.
      * @since 0.6.0
      */
-    public Map<String, String> getPlaceholders()
+    public List<TagResolver.Single> getPlaceholders(OfflinePlayer player)
     {
-        return Map.of("{" + this.key + "}", this.value.toString());
-    }
-
-    /**
-     * @param input The String to parse.
-     * @return A String with placeholders parsed, or null if input is null.
-     * @since 0.6.0
-     */
-    public @Nullable String parsePlaceholders(String input)
-    {
-        if (input == null) return null;
-
-        String output = input;
-        Map<String, String> placeholders = this.getPlaceholders();
-
-        for (String placeholder : placeholders.keySet())
-        {
-            String value = placeholders.get(placeholder);
-            output = output.replace(placeholder, value);
-        }
-
-        return output;
+        String value = PlaceholderAPIHook.parse(player, this.value.toString());
+        return List.of(Placeholder.parsed(this.key, value));
     }
 
     @Override
-    public String toString() {
-        return "{" + this.getKey() + "}";
+    public String toString()
+    {
+        return this.getKey();
     }
 }

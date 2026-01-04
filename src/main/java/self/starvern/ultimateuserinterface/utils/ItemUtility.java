@@ -1,12 +1,9 @@
 package self.starvern.ultimateuserinterface.utils;
 
-import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
-import self.starvern.ultimateuserinterface.item.ItemConfig;
 
 import javax.annotation.Nullable;
 
@@ -41,23 +38,6 @@ public class ItemUtility
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta == null) return;
         itemMeta.getPersistentDataContainer().remove(api.getKey());
-        item.setItemMeta(itemMeta);
-    }
-
-    /**
-     * Compares and updates an item based on its config.
-     * @param player The player to parse for.
-     * @param item The item to update.
-     * @since 0.5.0
-     */
-    public static void parseItem(OfflinePlayer player, ItemStack item, ItemConfig config)
-    {
-        ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null || player == null) return;
-
-        itemMeta.setDisplayName(PlaceholderAPIHook.parse(player, itemMeta.getDisplayName()));
-        itemMeta.setLore(PlaceholderAPIHook.parse(player, itemMeta.getLore()));
-
         item.setItemMeta(itemMeta);
     }
 }

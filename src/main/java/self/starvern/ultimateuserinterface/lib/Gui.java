@@ -3,6 +3,7 @@ package self.starvern.ultimateuserinterface.lib;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import self.starvern.ultimateuserinterface.UUI;
 
 import javax.annotation.Nullable;
@@ -82,7 +83,7 @@ public class Gui
      */
     public Gui duplicate()
     {
-        return new Gui(this.api, this.file).loadPages();
+        return new Gui(this.api, this.file);
     }
 
     /**
@@ -90,13 +91,13 @@ public class Gui
      * @return Instance of Gui
      * @since 0.1.0
      */
-    public Gui loadPages()
+    public Gui loadPages(Player player)
     {
         this.pages.clear();
         for (String patternName : patterns)
         {
             List<String> pattern = this.config.getStringList(patternName);
-            GuiPage page = new GuiPage(this.api, this, pattern);
+            GuiPage page = new GuiPage(this.api, this, pattern, player);
             this.pages.add(page);
         }
         return this;
@@ -229,9 +230,9 @@ public class Gui
     public GuiPage getPage(int page)
     {
         if (page < 0)
-            return this.pages.get(0);
+            return this.pages.getFirst();
         if (page >= this.pages.size())
-            return this.pages.get(this.pages.size()-1);
+            return this.pages.getLast();
         return this.pages.get(page);
     }
 

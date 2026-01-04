@@ -1,6 +1,6 @@
 package self.starvern.ultimateuserinterface.commands;
 
-import org.bukkit.Bukkit;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginIdentifiableCommand;
@@ -15,8 +15,6 @@ import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.properties.GuiProperty;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
 
 public class GuiCommandExecutor extends Command implements PluginIdentifiableCommand
 {
@@ -28,8 +26,7 @@ public class GuiCommandExecutor extends Command implements PluginIdentifiableCom
         super(name);
         this.api = api;
         this.plugin = this.api.getPlugin();
-        List<String> guiNames = this.api.getGuiManager().getGuis().stream()
-                .filter(Gui::registerAlias).map(Gui::getId).toList();
+        List<String> guiNames = this.api.getGuiManager().getGuiIds();
         this.setAliases(guiNames);
     }
 
@@ -54,20 +51,21 @@ public class GuiCommandExecutor extends Command implements PluginIdentifiableCom
             return false;
         }
 
-        Optional<Gui> guiOptional = this.plugin.getApi().getGuiManager().getGui(commandLabel);
-        if (guiOptional.isEmpty())
+        Gui gui = this.plugin.getApi().getGuiManager().getGui(commandLabel);
+        if (gui == null)
         {
             player.sendMessage("Gui not found");
             return false;
         }
 
-        if (guiOptional.get().getPermission() != null && !player.hasPermission(guiOptional.get().getPermission()))
+        if (gui.getPermission() != null && !player.hasPermission(gui.getPermission()))
         {
             player.sendMessage("No permission.");
             return false;
         }
 
-        GuiPage page = guiOptional.get().getPage(0);
+        gui.loadPages(player);
+        GuiPage page = gui.getPage(0);
         page.loadArguments();
 
         for (int i = 0; i < page.getArguments().size(); i++)
@@ -85,7 +83,10 @@ public class GuiCommandExecutor extends Command implements PluginIdentifiableCom
             if (args.length > i)
                 value = args[i];
 
-            argument.setValue(PlaceholderAPIHook.parse(player, page.getProperties().parsePropertyPlaceholders(value)));
+            argument.setValue(PlaceholderAPIHook.parse(
+                    player,
+                    MiniMessage.miniMessage().serialize(page.getProperties().parsePropertyPlaceholders(value, player))
+            ));
 
             try
             {

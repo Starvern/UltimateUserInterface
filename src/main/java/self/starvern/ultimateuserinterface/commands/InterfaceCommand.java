@@ -1,107 +1,89 @@
 package self.starvern.ultimateuserinterface.commands;
 
-import com.google.common.collect.MultimapBuilder;
-import org.bukkit.Material;
-import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
+import net.kyori.adventure.text.Component;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.jetbrains.annotations.NotNull;
-import self.starvern.ultimateuserinterface.UUIPlugin;
-import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
+import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.item.ItemTemplate;
 import self.starvern.ultimateuserinterface.lib.Gui;
-import self.starvern.ultimateuserinterface.lib.GuiArgument;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.macros.Macro;
-import self.starvern.ultimateuserinterface.properties.GuiProperty;
 
-import java.util.Optional;
-
-public class InterfaceCommand implements CommandExecutor
+public class InterfaceCommand
 {
-    private final UUIPlugin plugin;
-
-    public InterfaceCommand(UUIPlugin plugin)
+    public static LiteralArgumentBuilder<CommandSourceStack> createCommand(UUI api)
     {
-        this.plugin = plugin;
-        PluginCommand command = plugin.getCommand("interface");
-        if (command == null)
-        {
-            plugin.getLogger().severe("Invalid plugin.yml. Please re-install the plugin.");
-            return;
-        }
-        command.setTabCompleter(new InterfaceCommandCompleter(this.plugin));
-        command.setExecutor(this);
+        return Commands.literal("interface")
+                .requires(src -> src.getSender().hasPermission("uui.command.interface"))
+                .then(Commands.literal("reload")
+                        .requires(src -> src.getSender()
+                                .hasPermission("uui.command.interface.reload")
+                        )
+                        .executes(ctx -> manageReload(ctx, api))
+                )
+                .then(Commands.literal("list")
+                        .executes(ctx -> listMacros(ctx, api)))
+                .then(Commands.argument("gui", new GuiCommandArgument(api))
+                        .requires(src -> src.getExecutor() instanceof Player)
+                        .executes(InterfaceCommand::manageGui)
+                );
     }
+
+    private static int listMacros(CommandContext<CommandSourceStack> ctx, UUI api)
+    {
+        for (Macro macro : api.getMacroManager().getMacros())
+        {
+            ctx.getSource().getSender().sendMessage(Component.text(macro.toString()));
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int manageReload(CommandContext<CommandSourceStack> ctx, UUI api)
+    {
+        ctx.getSource().getSender().sendMessage("Reloaded UltimateUserInterface.");
+        api.getPlugin().load();
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int manageGui(CommandContext<CommandSourceStack> ctx)
+    {
+        if (!(ctx.getSource().getSender() instanceof Player player))
+            return Command.SINGLE_SUCCESS;
+
+        Gui gui = ctx.getArgument("gui", Gui.class);
+
+        if (gui.getPermission() != null && !player.hasPermission(gui.getPermission()))
+        {
+            player.sendMessage("No permission.");
+            return Command.SINGLE_SUCCESS;
+        }
+
+        gui.loadPages(player);
+        GuiPage page = gui.getPage(0);
+        // TODO: Add Gui Arguments
+        page.open(player);
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /*
+    TODO: FULLY IMPLEMENT
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
                              @NotNull String[] args)
     {
-        if (!sender.hasPermission("uui.command.interface"))
-        {
-            sender.sendMessage("Insufficient permission.");
-            return false;
-        }
-
-        if (args.length == 0)
-        {
-            sender.sendMessage("You need to specify a gui name");
-            return false;
-        }
-
-        if (args[0].equalsIgnoreCase("reload"))
-        {
-            if (!sender.hasPermission("uui.command.interface.reload"))
-            {
-                sender.sendMessage("Insufficient permission.");
-                return false;
-            }
-
-            sender.sendMessage("Reloaded UltimateUserInterface.");
-            plugin.load();
-            return true;
-        }
-
-        if (args[0].equalsIgnoreCase("list"))
-        {
-            for (Macro macro : this.plugin.getApi().getMacroManager().getMacros())
-            {
-                sender.sendMessage(macro.toString());
-            }
-        }
-
-        if (!(sender instanceof Player player))
-        {
-            sender.sendMessage("You need to be a player to open a gui.");
-            return false;
-        }
-
-        Optional<Gui> guiOptional = plugin.getApi().getGuiManager().getGui(args[0]);
-        if (guiOptional.isEmpty())
-        {
-            player.sendMessage("Gui not found");
-            return false;
-        }
-
-        if (guiOptional.get().getPermission() != null && !player.hasPermission(guiOptional.get().getPermission()))
-        {
-            player.sendMessage("No permission.");
-            return false;
-        }
-
         GuiPage page = guiOptional.get().getPage(0);
         page.loadArguments();
 
         for (int i = 0; i < page.getArguments().size(); i++)
         {
             GuiArgument argument = page.getArguments().get(i);
-
             String value = argument.getDefaultValue();
 
             if (args.length <= i+1 && argument.isRequired())
@@ -127,8 +109,7 @@ public class InterfaceCommand implements CommandExecutor
             }
         }
 
-
         page.open(player);
         return true;
-    }
+    } */
 }

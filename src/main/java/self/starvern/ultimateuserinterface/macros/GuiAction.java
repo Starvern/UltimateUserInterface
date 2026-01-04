@@ -1,11 +1,13 @@
 package self.starvern.ultimateuserinterface.macros;
 
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.api.GuiCustomEvent;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.lib.GuiItem;
 import self.starvern.ultimateuserinterface.lib.GuiPage;
+import self.starvern.ultimateuserinterface.managers.ChatManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +23,10 @@ public class GuiAction<T extends GuiBased>
     private final Macro macro;
     private final ActionTrigger trigger;
     private final String raw;
-    private List<String> arguments;
+    private final List<String> arguments;
+    private final Player player;
 
-    public GuiAction(T holder, Macro macro, ActionTrigger trigger, String raw)
+    public GuiAction(T holder, Macro macro, ActionTrigger trigger, String raw, Player player)
     {
         this.holder = holder;
         this.macro = macro;
@@ -31,6 +34,7 @@ public class GuiAction<T extends GuiBased>
         this.raw = raw;
         List<String> buffer = List.of(this.raw.split(" "));
         this.arguments = new ArrayList<>(buffer.subList(1, buffer.size()));
+        this.player = player;
     }
 
     public T getHolder()
@@ -62,10 +66,16 @@ public class GuiAction<T extends GuiBased>
         List<String> arguments = new ArrayList<>(this.arguments);
 
         if (this.holder instanceof GuiItem item)
-            arguments = item.getItemConfig().parseAllPlaceholders(arguments);
+            arguments = item.getItemTemplate()
+                    .parseAllPlaceholders(arguments, player)
+                    .stream()
+                    .toList();
 
         if (this.holder instanceof GuiPage page)
-            arguments = page.getProperties().parsePropertyPlaceholders(arguments);
+            arguments = page.getProperties().parsePropertyPlaceholders(arguments, player)
+                    .stream()
+                    .map(ChatManager::decolorize)
+                    .toList();
 
         return arguments;
     }

@@ -64,7 +64,14 @@ public class PlaceholderAPIHook
     public static String parse(OfflinePlayer player, String text)
     {
         if (!isInstalled() || text == null || player == null) return text;
-        return PlaceholderAPI.setPlaceholders(player, text);
+        String placeholder = text;
+        int i = 0;
+        while (containsPlaceholders(text) && i < 5)
+        {
+            i++;
+            placeholder = PlaceholderAPI.setPlaceholders(player, placeholder);
+        }
+        return placeholder;
     }
 
     /**

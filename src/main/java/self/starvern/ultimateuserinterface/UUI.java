@@ -3,7 +3,7 @@ package self.starvern.ultimateuserinterface;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.ServicePriority;
-import self.starvern.ultimateuserinterface.managers.CommandManager;
+import self.starvern.ultimateuserinterface.managers.FieldManager;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 import self.starvern.ultimateuserinterface.managers.ItemInputManager;
 import self.starvern.ultimateuserinterface.managers.MacroManager;
@@ -17,8 +17,8 @@ public class UUI
     private final GuiManager guiManager;
     private final ItemInputManager itemInputManager;
     private final MacroManager macroManager;
-    private final CommandManager commandManager;
     private final Logger logger;
+    private final FieldManager fieldManager;
 
     protected UUI(UUIPlugin plugin)
     {
@@ -26,10 +26,15 @@ public class UUI
         this.guiManager = new GuiManager(this);
         this.itemInputManager = new ItemInputManager();
         this.macroManager = new MacroManager();
-        this.commandManager = new CommandManager(this);
         this.logger = Logger.getLogger("UUI");
+        this.fieldManager = new FieldManager();
 
         Bukkit.getServicesManager().register(UUI.class, this, this.plugin, ServicePriority.Normal);
+    }
+
+    public FieldManager getFieldManager()
+    {
+        return this.fieldManager;
     }
 
     public GuiManager getGuiManager()
@@ -52,19 +57,9 @@ public class UUI
         return macroManager;
     }
 
-    public CommandManager getCommandManager()
-    {
-        return commandManager;
-    }
-
     public NamespacedKey getKey()
     {
         return new NamespacedKey(this.plugin, "uui-uuid");
-    }
-
-    public NamespacedKey getItemKey()
-    {
-        return new NamespacedKey(this.plugin, "uui-item-config");
     }
 
     public Logger getLogger()

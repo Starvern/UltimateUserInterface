@@ -1,11 +1,14 @@
 package self.starvern.ultimateuserinterface.macros.impl;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
 import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
+import self.starvern.ultimateuserinterface.lib.GuiItem;
+import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
 import self.starvern.ultimateuserinterface.macros.Macro;
 import self.starvern.ultimateuserinterface.managers.ChatManager;
@@ -26,11 +29,22 @@ public class PlayerCommandMacro extends Macro
         if (!(event.getHuman() instanceof Player player))
             return;
 
-        String command = PlaceholderAPIHook.parse(
-                player,
-                String.join(" ", action.getArguments())
-        );
+        String rawCommand = String.join(" ", action.getArguments());
 
-        player.performCommand(ChatManager.colorize(command));
+        if (action.getHolder() instanceof GuiItem item)
+        {
+            String command = item.getItemTemplate().parseAllPlaceholders(rawCommand, player);
+            player.performCommand(command);
+            return;
+        }
+
+        if (action.getHolder() instanceof GuiPage page)
+        {
+            Component command = page.getProperties().parsePropertyPlaceholders(rawCommand, player);
+            player.performCommand(ChatManager.decolorize(command));
+            return;
+        }
+
+        player.performCommand(PlaceholderAPIHook.parse(player, rawCommand));
     }
 }
