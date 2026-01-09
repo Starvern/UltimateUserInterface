@@ -3,10 +3,7 @@ package self.starvern.ultimateuserinterface;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.ServicePriority;
-import self.starvern.ultimateuserinterface.managers.FieldManager;
-import self.starvern.ultimateuserinterface.managers.GuiManager;
-import self.starvern.ultimateuserinterface.managers.ItemInputManager;
-import self.starvern.ultimateuserinterface.managers.MacroManager;
+import self.starvern.ultimateuserinterface.managers.*;
 
 import java.util.logging.Logger;
 
@@ -19,6 +16,7 @@ public class UUI
     private final MacroManager macroManager;
     private final Logger logger;
     private final FieldManager fieldManager;
+    private final LocaleManager localeManager;
 
     protected UUI(UUIPlugin plugin)
     {
@@ -28,8 +26,20 @@ public class UUI
         this.macroManager = new MacroManager();
         this.logger = Logger.getLogger("UUI");
         this.fieldManager = new FieldManager();
+        this.localeManager = new LocaleManager(this);
 
         Bukkit.getServicesManager().register(UUI.class, this, this.plugin, ServicePriority.Normal);
+    }
+
+    public void reload()
+    {
+        this.getLocaleManager().reload();
+        this.guiManager.loadGuis();
+    }
+
+    public LocaleManager getLocaleManager()
+    {
+        return localeManager;
     }
 
     public FieldManager getFieldManager()

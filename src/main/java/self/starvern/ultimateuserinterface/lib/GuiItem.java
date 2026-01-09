@@ -52,7 +52,7 @@ public class GuiItem extends Actionable<GuiItem> implements GuiBased
         this.template = new ItemTemplate(this);
         this.itemStack = this.template.build(player);
 
-        this.doUpdate = section.getBoolean("update_item", false);
+        this.doUpdate = section.getBoolean("update_item", true);
         this.player = player;
         this.loadActions();
     }

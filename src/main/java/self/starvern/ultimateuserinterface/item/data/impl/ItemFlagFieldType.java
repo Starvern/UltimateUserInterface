@@ -9,6 +9,7 @@ import self.starvern.ultimateuserinterface.item.ItemTemplate;
 import self.starvern.ultimateuserinterface.item.data.ItemField;
 import self.starvern.ultimateuserinterface.item.data.ItemFieldType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -25,14 +26,14 @@ public class ItemFlagFieldType extends ItemFieldType<ItemFlag[], List<String>>
         if (primitive == null)
             return new ItemFlag[0];
 
-        ItemFlag[] flags = new ItemFlag[primitive.size()];
+        List<ItemFlag> flags = new ArrayList<>();
 
         for (int index = 0; index < primitive.size(); index++)
         {
             String flagName = primitive.get(index);
             try
             {
-                flags[index] = ItemFlag.valueOf(flagName.toUpperCase(Locale.ROOT));
+                flags.add(ItemFlag.valueOf(flagName.toUpperCase(Locale.ROOT)));
             }
             catch (IllegalArgumentException ignored)
             {
@@ -40,7 +41,7 @@ public class ItemFlagFieldType extends ItemFieldType<ItemFlag[], List<String>>
             }
         }
 
-        return flags;
+        return flags.toArray(new ItemFlag[]{});
     }
 
     @Override

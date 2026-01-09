@@ -1,19 +1,15 @@
 package self.starvern.ultimateuserinterface.commands;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUIPlugin;
-import self.starvern.ultimateuserinterface.lib.Gui;
 import self.starvern.ultimateuserinterface.managers.GuiManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class InterfaceCommandCompleter implements TabCompleter
 {

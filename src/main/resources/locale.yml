@@ -1,0 +1,14 @@
+# Plugin Messages
+plugin_reload: "<green>Reloaded UltimateUserInterface</green>"
+plugin_info: "<green>UltimateUserInterface by Starvern</green>"
+
+# Generic Messages
+no_permission: "<red>No permission.</red>"
+no_player: "<red>You need to be a player to open a gui.</red>"
+
+# Gui Messages
+gui_invalid: "<red><gui> is not a valid gui.</red>"
+
+# Argument Messages
+argument_missing: "<red>Specify argument: <arg_id></red>"
+argument_invalid: "<red>Invalid argument: <arg_id>. Required type: <arg_type></red>"

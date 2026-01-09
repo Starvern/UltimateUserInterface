@@ -15,15 +15,6 @@ public class GuiArgument
 
     private @Nullable String value;
 
-    public GuiArgument(String id, String type)
-    {
-        this.id = id;
-        this.type = type;
-        this.defaultValue = "";
-        this.required = true;
-        this.value = null;
-    }
-
     public GuiArgument(String id, String type, String defaultValue, boolean required)
     {
         this.id = id;

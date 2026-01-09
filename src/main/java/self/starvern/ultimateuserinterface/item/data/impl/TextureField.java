@@ -11,6 +11,7 @@ import self.starvern.ultimateuserinterface.hooks.HeadDatabaseHook;
 import self.starvern.ultimateuserinterface.item.ItemTemplate;
 import self.starvern.ultimateuserinterface.item.data.ItemField;
 import self.starvern.ultimateuserinterface.item.data.ItemFieldType;
+import self.starvern.ultimateuserinterface.lib.GuiContext;
 
 import java.util.UUID;
 
@@ -22,11 +23,11 @@ public class TextureField extends ItemField<String, String>
     }
 
     @Override
-    public ItemStack apply(ItemStack itemStack, OfflinePlayer player)
+    public ItemStack apply(ItemStack itemStack, GuiContext context)
     {
         @Nullable String texture = this.fieldType.getComplex(
                 this.primitive,
-                s -> this.template.parseAllPlaceholders(s, player)
+                s -> this.template.parseAllPlaceholders(s, context.getPlayer())
         );
 
         if (texture == null)

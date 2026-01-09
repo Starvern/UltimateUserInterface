@@ -7,28 +7,30 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.lib.Gui;
+import self.starvern.ultimateuserinterface.managers.LocaleKey;
 
 import java.util.concurrent.CompletableFuture;
 
 public class GuiCommandArgument implements CustomArgumentType.Converted<Gui, String>
 {
     private final UUI api;
+    private final DynamicCommandExceptionType errorInvalidGui;
 
     public GuiCommandArgument(UUI api)
     {
         this.api = api;
+        this.errorInvalidGui = new DynamicCommandExceptionType(guiId ->
+                this.api.getLocaleManager().getEntry(LocaleKey.GUI_UNKNOWN).supplyPlaceholder(
+                        Placeholder.parsed("gui", guiId.toString())
+                ).getMessage()
+        );
     }
-
-    private static final DynamicCommandExceptionType ERROR_INVALID_GUI = new DynamicCommandExceptionType(guiId ->
-            MessageComponentSerializer.message().
-                    serialize(Component.text(guiId + " is not a valid gui."))
-    );
 
     @Override
     public @NotNull Gui convert(@NotNull String targetGuiId) throws CommandSyntaxException
@@ -36,10 +38,15 @@ public class GuiCommandArgument implements CustomArgumentType.Converted<Gui, Str
         for (String guiId : this.api.getGuiManager().getGuiIds())
         {
             if (guiId.equals(targetGuiId))
-                return this.api.getGuiManager().getGui(guiId);
+            {
+                @Nullable Gui gui = this.api.getGuiManager().getGui(guiId);
+                if (gui == null)
+                    throw this.errorInvalidGui.create(targetGuiId);
+                return gui;
+            }
         }
 
-        throw ERROR_INVALID_GUI.create(targetGuiId);
+        throw this.errorInvalidGui.create(targetGuiId);
     }
 
     @Override

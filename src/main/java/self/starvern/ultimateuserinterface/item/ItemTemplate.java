@@ -9,15 +9,13 @@ import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.item.data.ItemField;
 import self.starvern.ultimateuserinterface.item.data.ItemFieldType;
-import self.starvern.ultimateuserinterface.lib.Gui;
-import self.starvern.ultimateuserinterface.lib.GuiBased;
-import self.starvern.ultimateuserinterface.lib.GuiItem;
-import self.starvern.ultimateuserinterface.lib.GuiPage;
+import self.starvern.ultimateuserinterface.lib.*;
 import self.starvern.ultimateuserinterface.managers.ChatManager;
 import self.starvern.ultimateuserinterface.properties.GuiProperties;
 import self.starvern.ultimateuserinterface.properties.GuiProperty;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -39,13 +37,29 @@ public class ItemTemplate implements GuiBased
     }
 
     /**
-     * @param player The {@link OfflinePlayer} to parse placeholders for.
+     * @param player The {@link OfflinePlayer} to build for.
      * @return A built {@link ItemStack}.
      * @since 0.7.0
      */
     public ItemStack build(OfflinePlayer player)
     {
         ItemStack itemStack = ItemStack.of(Material.STONE);
+
+        Set<String> keys = this.section.getKeys(false);
+
+        GuiContext context = new GuiContext(
+                this.item,
+                player
+        );
+
+        for (ItemFieldType<?, ?> fieldType : this.api.getFieldManager().getFields())
+        {
+            if (!keys.contains(fieldType.getKey()))
+                continue;
+
+            ItemField<?, ?> field = fieldType.fillField(this, this.section);
+            itemStack = field.apply(itemStack, context);
+        }
 
         for (String key : this.section.getKeys(false))
         {
@@ -54,7 +68,7 @@ public class ItemTemplate implements GuiBased
                 continue;
 
             ItemField<?, ?> field = fieldType.fillField(this, this.section);
-            itemStack = field.apply(itemStack, player);
+            itemStack = field.apply(itemStack, context);
         }
 
         return itemStack;

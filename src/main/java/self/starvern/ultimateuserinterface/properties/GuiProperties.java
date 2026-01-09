@@ -1,13 +1,10 @@
 package self.starvern.ultimateuserinterface.properties;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.hooks.PlaceholderAPIHook;
 import self.starvern.ultimateuserinterface.lib.GuiBased;
 import self.starvern.ultimateuserinterface.managers.ChatManager;

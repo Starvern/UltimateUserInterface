@@ -6,13 +6,11 @@ import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.text.Component;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import self.starvern.ultimateuserinterface.UUI;
-import self.starvern.ultimateuserinterface.item.ItemTemplate;
 import self.starvern.ultimateuserinterface.lib.Gui;
-import self.starvern.ultimateuserinterface.lib.GuiPage;
 import self.starvern.ultimateuserinterface.macros.Macro;
+import self.starvern.ultimateuserinterface.managers.LocaleKey;
 
 public class InterfaceCommand
 {
@@ -30,8 +28,20 @@ public class InterfaceCommand
                         .executes(ctx -> listMacros(ctx, api)))
                 .then(Commands.argument("gui", new GuiCommandArgument(api))
                         .requires(src -> src.getExecutor() instanceof Player)
-                        .executes(InterfaceCommand::manageGui)
-                );
+                        .executes(ctx -> manageGui(ctx, api))
+                )
+                .then(Commands.literal("test")
+                        .executes(ctx -> testLocale(ctx, api)));
+    }
+
+    private static int testLocale(CommandContext<CommandSourceStack> ctx, UUI api)
+    {
+        for (LocaleKey key : LocaleKey.values())
+        {
+            Component msg = api.getLocaleManager().getEntry(key).getComponent();
+            ctx.getSource().getSender().sendMessage(msg);
+        }
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int listMacros(CommandContext<CommandSourceStack> ctx, UUI api)
@@ -45,12 +55,16 @@ public class InterfaceCommand
 
     private static int manageReload(CommandContext<CommandSourceStack> ctx, UUI api)
     {
-        ctx.getSource().getSender().sendMessage("Reloaded UltimateUserInterface.");
         api.getPlugin().load();
+        ctx.getSource().getSender().sendMessage(
+                api.getLocaleManager()
+                        .getEntry(LocaleKey.PLUGIN_RELOAD)
+                        .getComponent()
+        );
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int manageGui(CommandContext<CommandSourceStack> ctx)
+    private static int manageGui(CommandContext<CommandSourceStack> ctx, UUI api)
     {
         if (!(ctx.getSource().getSender() instanceof Player player))
             return Command.SINGLE_SUCCESS;
@@ -59,14 +73,16 @@ public class InterfaceCommand
 
         if (gui.getPermission() != null && !player.hasPermission(gui.getPermission()))
         {
-            player.sendMessage("No permission.");
+            player.sendMessage(
+                    api.getLocaleManager()
+                            .getEntry(LocaleKey.NO_PERMISSION)
+                            .getComponent()
+            );
             return Command.SINGLE_SUCCESS;
         }
 
         gui.loadPages(player);
-        GuiPage page = gui.getPage(0);
-        // TODO: Add Gui Arguments
-        page.open(player);
+        gui.open(player);
 
         return Command.SINGLE_SUCCESS;
     }

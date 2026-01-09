@@ -1,15 +1,16 @@
 package self.starvern.ultimateuserinterface.item.data.impl;
 
-import net.kyori.adventure.text.Component;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.item.ItemTemplate;
 import self.starvern.ultimateuserinterface.item.data.ItemField;
+import self.starvern.ultimateuserinterface.item.data.ItemFieldType;
 import self.starvern.ultimateuserinterface.lib.GuiContext;
 
-public class CustomNameField extends ItemField<Component, String>
+public class PlayerField extends ItemField<OfflinePlayer, String>
 {
-    public CustomNameField(ItemTemplate template, CustomNameFieldType fieldType, String primitive)
+    public PlayerField(ItemTemplate template, ItemFieldType<OfflinePlayer, String> fieldType, String primitive)
     {
         super(template, fieldType, primitive);
     }
@@ -17,15 +18,15 @@ public class CustomNameField extends ItemField<Component, String>
     @Override
     public ItemStack apply(ItemStack itemStack, GuiContext context)
     {
-        @Nullable Component component = this.fieldType.getComplex(
+        @Nullable OfflinePlayer player = this.fieldType.getComplex(
                 this.primitive,
-                s -> this.template.parseAllPlaceholders(s, context.getPlayer())
+                s -> context.parseAllPlaceholders(s, context.getPlayer())
         );
 
-        if (component == null || itemStack.isEmpty())
+        if (player == null)
             return itemStack;
 
-        itemStack.editMeta(meta -> meta.customName(component));
+        context.setPlayer(player);
 
         return itemStack;
     }

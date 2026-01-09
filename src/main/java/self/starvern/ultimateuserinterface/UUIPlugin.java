@@ -21,6 +21,7 @@ public class UUIPlugin extends JavaPlugin
     {
         this.api = new UUI(this);
 
+        new PlayerFieldType(this.api).register();
         new AmountFieldType(this.api).register();
         new ColorFieldType(this.api).register();
         new CustomNameFieldType(this.api).register();
@@ -29,6 +30,7 @@ public class UUIPlugin extends JavaPlugin
         new LoreFieldType(this.api).register();
         new MaterialFieldType(this.api).register();
         new TextureFieldType(this.api).register();
+        new CustomModelDataFieldType(this.api).register();
 
         loadMacros();
         load();
@@ -111,6 +113,6 @@ public class UUIPlugin extends JavaPlugin
             this.saveResource("gui/example_menu.yml", false);
         }
 
-        this.api.getGuiManager().loadGuis();
+        this.api.reload();
     }
 }

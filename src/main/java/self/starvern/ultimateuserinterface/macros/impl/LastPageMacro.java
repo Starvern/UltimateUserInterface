@@ -41,7 +41,6 @@ public class LastPageMacro extends Macro
         Optional<GuiItem> optionalItem = event.getPage().getItem(character);
         if (optionalItem.isEmpty()) return;
 
-        item.setItemStack(optionalItem.get().getItemStack());
-        event.getPage().update();
+        optionalItem.get().slot(item.getSlot());
     }
 }

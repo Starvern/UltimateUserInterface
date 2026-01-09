@@ -1,10 +1,15 @@
 package self.starvern.ultimateuserinterface.lib;
 
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.managers.ChatManager;
+import self.starvern.ultimateuserinterface.managers.LocaleKey;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -28,6 +33,7 @@ public class Gui
     private final Set<GuiSession> sessions;
     private final Logger logger;
     private final boolean registerAlias;
+    private final List<GuiArgument> arguments;
 
     public Gui(UUI api, File file)
     {
@@ -42,6 +48,95 @@ public class Gui
         this.sessions = new HashSet<>();
         this.logger = Logger.getLogger("UUI::" + this.id + ".yml");
         this.registerAlias = this.config.getBoolean("register_alias", false);
+        this.arguments = new ArrayList<>();
+        this.loadArguments();
+    }
+
+    public boolean checkArguments(Player player, String @NotNull [] providedArguments)
+    {
+        for (int index = 0; index < this.arguments.size(); index ++)
+        {
+            GuiArgument argument = this.arguments.get(index);
+
+            String providedArg;
+
+            if (providedArguments.length < index)
+            {
+                if (argument.isRequired())
+                {
+                    player.sendMessage(
+                            this.api.getLocaleManager()
+                                    .getEntry(LocaleKey.ARGUMENT_MISSING)
+                                    .supplyPlaceholder(Placeholder.parsed("arg_id", argument.getId()))
+                                    .getComponent()
+                    );
+                    return false;
+                }
+
+                providedArg = argument.getDefaultValue();
+            }
+            else
+            {
+                providedArg = providedArguments[index];
+            }
+
+            for (GuiPage page : this.pages)
+            {
+                try
+                {
+                    argument.setValue(
+                            ChatManager.decolorize(
+                                    page.getProperties().parsePropertyPlaceholders(
+                                            providedArg,
+                                            player
+                                    )
+                            )
+                    );
+                    page.getProperties().setProperty(
+                            argument.asProperty(),
+                            true
+                    );
+                }
+                catch (NumberFormatException exception)
+                {
+                    player.sendMessage(
+                            this.api.getLocaleManager()
+                                    .getEntry(LocaleKey.ARGUMENT_INVALID)
+                                    .supplyPlaceholder(Placeholder.parsed("arg_id", argument.getId()))
+                                    .supplyPlaceholder(Placeholder.parsed("arg_type", argument.getType()))
+                                    .getComponent()
+                    );
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public void loadArguments()
+    {
+        this.arguments.clear();
+        ConfigurationSection argumentSection = this.config.getConfigurationSection("arguments");
+        if (argumentSection == null) return;
+
+        for (String id : argumentSection.getKeys(false))
+        {
+            ConfigurationSection section = argumentSection.getConfigurationSection(id);
+            if (section == null)
+                continue;
+
+            String type = section.getString("type");
+            boolean required = section.getBoolean("required");
+            String defaultValue = section.getString("default", "");
+
+            this.arguments.add(new GuiArgument(id, type, defaultValue, required));
+        }
+    }
+
+    public List<GuiArgument> getArguments()
+    {
+        return this.arguments;
     }
 
     /**

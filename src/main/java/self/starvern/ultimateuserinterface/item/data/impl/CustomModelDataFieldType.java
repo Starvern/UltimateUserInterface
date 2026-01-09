@@ -1,0 +1,38 @@
+package self.starvern.ultimateuserinterface.item.data.impl;
+
+import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
+import self.starvern.ultimateuserinterface.UUI;
+import self.starvern.ultimateuserinterface.item.ItemTemplate;
+import self.starvern.ultimateuserinterface.item.data.ItemField;
+import self.starvern.ultimateuserinterface.item.data.ItemFieldType;
+
+public class CustomModelDataFieldType extends ItemFieldType<Float, String>
+{
+    public CustomModelDataFieldType(UUI api)
+    {
+        super(api, "custom_model_data");
+    }
+
+    @Override
+    public @Nullable Float getComplex(@Nullable String primitive)
+    {
+        if (primitive == null)
+            return null;
+
+        try
+        {
+            return Float.parseFloat(primitive);
+        }
+        catch (NumberFormatException exception)
+        {
+            return null;
+        }
+    }
+
+    @Override
+    public ItemField<Float, String> fillField(ItemTemplate template, ConfigurationSection section)
+    {
+        return new CustomModelDataField(template, this, section.getString(this.key));
+    }
+}

@@ -3,6 +3,7 @@ package self.starvern.ultimateuserinterface.item.data;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import self.starvern.ultimateuserinterface.item.ItemTemplate;
+import self.starvern.ultimateuserinterface.lib.GuiContext;
 
 public class ItemField<T, P>
 {
@@ -48,7 +49,7 @@ public class ItemField<T, P>
      * @return The updated {@link ItemStack} after applying this field.
      * @since 0.7.0
      */
-    public ItemStack apply(ItemStack itemStack, OfflinePlayer player)
+    public ItemStack apply(ItemStack itemStack, GuiContext context)
     {
         return itemStack;
     }

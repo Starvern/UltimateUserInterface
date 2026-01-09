@@ -36,12 +36,11 @@ public class NextPageMacro extends Macro
         if (action.getArguments().isEmpty() || !(action.getHolder() instanceof SlottedGuiItem item))
             return;
 
-        String character = action.getArguments().get(0);
+        String character = action.getArguments().getFirst();
 
         Optional<GuiItem> optionalItem = event.getPage().getItem(character);
         if (optionalItem.isEmpty()) return;
 
-        item.setItemStack(optionalItem.get().getItemStack());
-        event.getPage().update();
+        optionalItem.get().slot(item.getSlot());
     }
 }

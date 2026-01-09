@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.api.GuiEvent;
-import self.starvern.ultimateuserinterface.item.ItemTemplate;
 import self.starvern.ultimateuserinterface.macros.ActionTrigger;
 import self.starvern.ultimateuserinterface.macros.ActionType;
 import self.starvern.ultimateuserinterface.macros.GuiAction;
@@ -47,7 +46,6 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     private int tick;
 
     private final GuiProperties<GuiPage> properties;
-    private final List<GuiArgument> arguments;
 
     private final Player player;
 
@@ -69,11 +67,9 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
                 Math.min(9 * this.pattern.size(), 54),
                 this.properties.parsePropertyPlaceholders(this.title, player)
         );
-        this.arguments = new ArrayList<>();
         this.player = player;
         this.loadActions();
         this.loadItems();
-        this.loadArguments();
     }
 
     /**
@@ -83,26 +79,6 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
     public UUI getApi()
     {
         return this.api;
-    }
-
-    public void loadArguments()
-    {
-        this.arguments.clear();
-        ConfigurationSection argumentSection = this.config.getConfigurationSection("arguments");
-        if (argumentSection == null) return;
-
-        for (String id : argumentSection.getKeys(false))
-        {
-            ConfigurationSection section = argumentSection.getConfigurationSection(id);
-            if (section == null)
-                continue;
-
-            String type = section.getString("type");
-            boolean required = section.getBoolean("required");
-            String defaultValue = section.getString("default", "");
-
-            this.arguments.add(new GuiArgument(id, type, defaultValue, required));
-        }
     }
 
     /**
@@ -115,11 +91,6 @@ public class GuiPage extends Actionable<GuiPage> implements InventoryHolder, Gui
         for (SlottedGuiItem item : this.slottedItems)
             if (item.getUniqueId().equals(uuid)) return item;
         return null;
-    }
-
-    public List<GuiArgument> getArguments()
-    {
-        return this.arguments;
     }
 
     /**

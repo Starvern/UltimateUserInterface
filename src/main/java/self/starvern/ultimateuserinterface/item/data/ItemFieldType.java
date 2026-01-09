@@ -4,6 +4,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.UUI;
 import self.starvern.ultimateuserinterface.item.ItemTemplate;
+import self.starvern.ultimateuserinterface.lib.ContextPriority;
 
 import java.util.function.Function;
 
@@ -11,11 +12,29 @@ public abstract class ItemFieldType<T, P>
 {
     protected final UUI api;
     protected final String key;
+    protected final int priority;
 
     public ItemFieldType(UUI api, String key)
     {
         this.api = api;
+        this.key = key;;
+        this.priority = ContextPriority.NORMAL;
+    }
+
+    public ItemFieldType(UUI api, String key, int priority)
+    {
+        this.api = api;
         this.key = key;
+        this.priority = priority;
+    }
+
+    /**
+     * @return The priority of this field type.
+     * @since 0.7.0
+     */
+    public int getPriority()
+    {
+        return this.priority;
     }
 
     /**

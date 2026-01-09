@@ -3,8 +3,8 @@ package self.starvern.ultimateuserinterface.managers;
 import org.jetbrains.annotations.Nullable;
 import self.starvern.ultimateuserinterface.item.data.ItemFieldType;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class FieldManager
 {
@@ -28,5 +28,16 @@ public class FieldManager
                 return field;
         }
         return null;
+    }
+
+    /**
+     * @return Every registered field type sorted by priority.
+     * @since 0.7.0
+     */
+    public List<ItemFieldType<?, ?>> getFields()
+    {
+        List<ItemFieldType<?, ?>> fields = new ArrayList<>(this.fields);
+        fields.sort(Comparator.comparing(ItemFieldType::getPriority));
+        return fields;
     }
 }
